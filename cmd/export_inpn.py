@@ -6,11 +6,13 @@ if _base_dir not in sys.path:
     sys.path.insert(0, _base_dir)
 
 if True:
+    from biolit.observations import format_observations
     from biolit.taxref import format_taxref
 
 
 def main():
     format_taxref()
+    format_observations()
 
 
 if __name__ == "__main__":
