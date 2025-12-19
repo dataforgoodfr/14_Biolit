@@ -10,10 +10,10 @@ if command_exists poetry && poetry --version &> /dev/null; then
     echo "Poetry is already installed. Version: $(poetry --version)"
 else
     echo "Poetry is not installed. Installing now..."
-    
+
     # Install Poetry
     curl -sSL https://install.python-poetry.org | python3 -
-    
+
     # Add poetry to PATH
     echo 'export PATH="$HOME/.local/bin:$PATH"' >> ~/.bashrc
     source ~/.bashrc
