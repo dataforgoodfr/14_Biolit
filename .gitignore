@@ -161,3 +161,7 @@ cython_debug/
 
 # Precommit hooks: ruff cache
 .ruff_cache
+
+nohup.out
+data/
+notebooks/
