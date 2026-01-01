@@ -30,6 +30,35 @@ Ou alors, utilisez la commande `uv run ...` (au lieu de `python ...`) pour lance
 uv run pipelines/run.py run build_database
 ```
 
+## Préparer les données pour Label Studio
+
+Télécharge les images, crée le JSON et démarre le serveur HTTP :
+
+```bash
+# Traiter toutes les images
+uv run cmd/prepare_labelstudio.py
+
+# Limiter à un nombre spécifique
+uv run cmd/prepare_labelstudio.py --limit 10
+
+# Forcer le re-téléchargement des images existantes
+uv run cmd/prepare_labelstudio.py --force
+```
+
+Cela va :
+1. Télécharger les images dans le répertoire `images/`
+2. Créer `labelstudio_tasks.json` avec les annotations
+3. Démarrer un serveur HTTP avec CORS activé sur `http://localhost:8000`
+
+## Lancer Label Studio
+
+Dans un autre terminal :
+
+```bash
+uv run label-studio
+```
+
+Ensuite, importez `labelstudio_tasks.json` dans l'interface de Label Studio.
 
 ## Lancer les precommit-hook localement
 
