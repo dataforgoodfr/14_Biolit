@@ -18,4 +18,5 @@ dependencies = [
     "pre-commit>=4.5.1",
     "pytest>=9.0.2",
     "requests>=2.32.3",
+    "structlog>=25.5.0",
 ]
