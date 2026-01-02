@@ -1,5 +1,4 @@
 import polars as pl
-from polars import col
 
 from biolit.observations import learnable_taxonomy
 

@@ -1,5 +1,4 @@
 import itertools
-from math import ceil
 
 import polars as pl
 import structlog
