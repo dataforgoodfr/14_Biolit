@@ -119,24 +119,20 @@ def learnable_taxonomy(
     """
     Liste les niveau taxonomiques les plus bas predictibles.
     """
-    autre_keyword = "AUTRE -- "
     next_level = levels[0] if levels else "nom_scientifique"
     level_agg = frame.group_by(next_level).agg(col("n_obs").sum())
     learnables = level_agg.filter(col("n_obs") >= n_learnable)[next_level].to_list()
 
     unlearnable = level_agg.filter(col("n_obs") < n_learnable)
-    if unlearnable["n_obs"].sum() >= n_learnable:
-        learnables.append(autre_keyword + current_taxon)
-    elif not unlearnable.is_empty():
-        expected_obs = ceil(n_learnable / len(unlearnable))
-        missings = unlearnable.select(
-            "nom_scientifique", (expected_obs - col("n_obs")).clip(0).alias("n_obs")
+    remaining_taxon = []
+    if not unlearnable.is_empty():
+        autre_keyword = (
+            "AUTRE -- " if unlearnable["n_obs"].sum() >= n_learnable else "NO_STATS -- "
         )
-        missings = {k: v for k, v in missings.to_numpy()}
-        LOGGER.info("unlearnable_taxonomy", **missings)
+        remaining_taxon.append(autre_keyword + current_taxon)
 
     if not levels:
-        return learnables
+        return learnables + remaining_taxon
 
     next_frame = frame.group_by(levels + ["nom_scientifique"]).agg(col("n_obs").sum())
 
@@ -149,5 +145,5 @@ def learnable_taxonomy(
         )
         or [taxon]
         for taxon in learnables
-    ]
+    ] + [remaining_taxon]
     return sorted(set(itertools.chain(*learnable_sublevels)))

@@ -44,5 +44,5 @@ class TestLearnableTaxonomy:
         )
 
         out = learnable_taxonomy(inp, "vivant", ["genre", "classe"], 10)
-        exp = ["herbe"]
+        exp = ["NO_STATS -- chlorophyle", "herbe"]
         assert out == exp
