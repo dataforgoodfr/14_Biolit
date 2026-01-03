@@ -21,3 +21,6 @@ dependencies = [
     "requests>=2.32.3",
     "structlog>=25.5.0",
 ]
+
+[tool.pytest.ini_options]
+pythonpath = ["."]
