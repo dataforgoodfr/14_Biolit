@@ -67,7 +67,7 @@ def _check_missing_taxref(frame: pl.DataFrame) -> pl.DataFrame:
         col("species_id").is_null() & col("nom_scientifique").is_not_null()
     )
     missing_taxref = (
-        frame.filter()
+        frame.filter(missing_taxref_filter)
         .group_by("nom_scientifique")
         .agg(col("id").count().alias("n_observations"))
         .sort("n_observations", descending=True)
