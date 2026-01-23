@@ -16,4 +16,5 @@ dependencies = [
     "pandas>=2.2.3",
     "requests>=2.32.3",
     "label-studio>=1.22.0",
+    "ultralytics>=8.3.252",
 ]
