@@ -1,8 +1,12 @@
 import polars as pl
 import structlog
 from polars import col
+from pathlib import Path
+import requests
+import zipfile
+import shutil
 
-from biolit import DATADIR
+from biolit import DATADIR, TAXREFURL
 
 TAXREF_HIERARCHY = ["regne", "phylum", "classe", "ordre", "famille", "sous_famille"]
 LOGGER = structlog.get_logger()
@@ -10,6 +14,10 @@ LOGGER = structlog.get_logger()
 
 def format_taxref():
     fn = DATADIR / "TAXREF_v18_2025" / "TAXREFv18.txt"
+
+    if not _check_file_existence(fn):
+        _download_taxref(fn)
+
     taxref = (
         pl.read_csv(fn, separator="\t")
         .rename(str.lower)
@@ -50,3 +58,36 @@ def _check_duplicates(frame: pl.DataFrame):
         n_species=len(frame),
         n_names=frame["species_name"].n_unique(),
     )
+
+
+def _check_file_existence(file: Path):
+    if not file.exists():
+        return False
+
+    if not file.is_file():
+        LOGGER.fatal(
+            "The following path has been created, but it is not a standard file",
+            path=file
+        )
+
+
+def _download_taxref(targetpath: Path):
+    # Download and save the TaxRef zip file to a temp file
+    r = requests.get(TAXREFURL)
+
+    tmpfile = Path("tmp_taxref.zip")
+    with open(tmpfile, 'wb') as f:
+        for chunk in r:
+            if chunk:
+                f.write(chunk)
+
+    # Extract the taxonomy itself to proper path
+    with zipfile.ZipFile(tmpfile) as z:
+        with z.open('TAXREFv18.txt') as zf, open(targetpath, 'wb') as f:
+            shutil.copyfileobj(zf, f)
+
+    # Cleanup the zip archive and check all went well
+    tmpfile.unlink()
+
+    if not targetpath.is_file():
+        LOGGER.fatal("Didn't manage to properly download the TaxRef")
