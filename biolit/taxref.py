@@ -80,7 +80,8 @@ def _download_taxref(targetpath: Path):
     )
     r = requests.get(TAXREFURL)
 
-    tmpfile = Path("tmp_taxref.zip")
+    Path("data/temp").mkdir(exist_ok=True)
+    tmpfile = Path("data/temp/tmp_taxref.zip")
     with open(tmpfile, 'wb') as f:
         for chunk in r:
             if chunk:
