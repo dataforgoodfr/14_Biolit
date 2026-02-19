@@ -73,6 +73,11 @@ def _check_file_existence(file: Path):
 
 def _download_taxref(targetpath: Path):
     # Download and save the TaxRef zip file to a temp file
+    LOGGER.warning(
+        "Currently downloading the TaxRef file from the following URL, "+
+        " known to be temporary ! It will have to be changed at a later date.",
+        url = TAXREFURL
+    )
     r = requests.get(TAXREFURL)
 
     tmpfile = Path("tmp_taxref.zip")
