@@ -13,7 +13,7 @@ LOGGER = structlog.get_logger()
 
 
 def format_taxref():
-    fn = DATADIR / "TAXREF_v18_2025" / "TAXREFv18.txt"
+    fn = DATADIR / "TAXREFv18.txt"
 
     if not _check_file_existence(fn):
         _download_taxref(fn)
