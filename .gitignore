@@ -166,3 +166,8 @@ nohup.out
 data/
 notebooks/
 .DS_Store
+images/
+labels/
+failed_downloads.csv
+metadata.csv
+data.yaml
