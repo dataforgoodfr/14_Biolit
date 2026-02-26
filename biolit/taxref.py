@@ -78,22 +78,33 @@ def _download_taxref(targetpath: Path):
         " known to be temporary ! It will have to be changed at a later date.",
         url = TAXREFURL
     )
-    r = requests.get(TAXREFURL)
+
 
     Path("data/temp").mkdir(exist_ok=True)
-    tmpfile = Path("data/temp/tmp_taxref.zip")
+    _download_file_from_url(TAXREFURL, "data/temp/tmp_taxref.zip")
+    _get_file_from_zip("data/temp/tmp_taxref.zip", 'TAXREFv18.txt', targetpath)
+
+    # Cleanup the zip archive and check all went well
+    Path("data/temp/tmp_taxref.zip").unlink()
+
+    if not targetpath.is_file():
+        LOGGER.fatal("Didn't manage to properly extract the TaxRef")
+
+
+def _download_file_from_url(url: str, targetpath: Path):
+    # Download a given file from the web and store it to target path
+    r = requests.get(url)
+
+    Path("data/temp").mkdir(exist_ok=True)
+    tmpfile = Path(targetpath)
     with open(tmpfile, 'wb') as f:
         for chunk in r:
             if chunk:
                 f.write(chunk)
 
-    # Extract the taxonomy itself to proper path
-    with zipfile.ZipFile(tmpfile) as z:
-        with z.open('TAXREFv18.txt') as zf, open(targetpath, 'wb') as f:
+
+def _get_file_from_zip(input_zip: Path, filename: str, output_file: Path):
+    # Extract a given file from a zip archive to a target path
+    with zipfile.ZipFile(input_zip) as z:
+        with z.open(filename) as zf, open(output_file, 'wb') as f:
             shutil.copyfileobj(zf, f)
-
-    # Cleanup the zip archive and check all went well
-    tmpfile.unlink()
-
-    if not targetpath.is_file():
-        LOGGER.fatal("Didn't manage to properly download the TaxRef")
