@@ -79,7 +79,6 @@ def _download_taxref(targetpath: Path):
         url = TAXREFURL
     )
 
-
     Path("data/temp").mkdir(exist_ok=True)
     _download_file_from_url(TAXREFURL, "data/temp/tmp_taxref.zip")
     _get_file_from_zip("data/temp/tmp_taxref.zip", 'TAXREFv18.txt', targetpath)
