@@ -31,4 +31,6 @@ Pipeline de constitution du dataset Biolit pour inférence YOLO / Grounding DINO
 
 ## Routage
 
-- Si aucune détection → **Label Studio (CROP)**.
+   - si détection forte → **Classification**
+   - si détection faible → **Label Studio (CROP)**
+   - si pas de détection animal ou végétal → stop
