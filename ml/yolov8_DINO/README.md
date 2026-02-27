@@ -3,7 +3,7 @@
 Objectif : détecter l'espèce (végétal/animal) et générer un crop centré sur l'objet.
 
 ## Entrées
-Structure de données généré à partir du fichier `export_biolit.csv`. 
+Structure de données généré à partir du fichier `export_biolit.csv`.
 
 ### Récupération propre des données
 build_dataset.py
@@ -24,7 +24,7 @@ Pipeline de constitution du dataset Biolit pour inférence YOLO / Grounding DINO
 ```
 
 
-## Sorties 
+## Sorties
 
 - Bboxes + classes : `dataset_biolit/exports/yolov8_detections.csv`
 - Images crops : `dataset_biolit/crops/images/`
