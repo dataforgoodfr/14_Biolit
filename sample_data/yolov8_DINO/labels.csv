@@ -1,0 +1,4 @@
+image_path,label,x_center,y_center,width,height
+images/yolo_001.jpg,animal,0.52,0.48,0.30,0.40
+images/yolo_001.jpg,vegetal,0.15,0.20,0.10,0.12
+images/yolo_002.jpg,vegetal,0.60,0.55,0.25,0.35
