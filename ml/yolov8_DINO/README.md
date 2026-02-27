@@ -14,4 +14,6 @@ Objectif : détecter l'espèce (végétal/animal) et générer un crop centré s
 
 ## Routage
 
-- Si aucune détection → **Label Studio (CROP)**.
+   - si détection forte → **Classification**
+   - si détection faible → **Label Studio (CROP)**
+   - si pas de détection animal ou végétal → stop
