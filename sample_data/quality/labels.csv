@@ -1,4 +1,0 @@
-image_path,quality_label,is_blurry,is_overexposed,is_underexposed,is_subject_centered
-images/quality_good_001.jpg,good,false,false,false,true
-images/quality_bad_blurry_001.jpg,bad,true,false,false,false
-images/quality_bad_exposed_001.jpg,bad,false,true,false,true

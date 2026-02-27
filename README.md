@@ -2,28 +2,26 @@
 
 Ce dépôt fournit un **template infra + data** pour lancer le pipeline de
 classification et guider les bénévoles sur les 3 tâches ML :
-1. **Qualité d'image** (filtrage)
-2. **YOLOv8** (détection + crop)
-3. **Classification hiérarchique** (règne → espèce)
+1. **YOLOv8/DINO** (détection + crop)
+2. **Classification hiérarchique** (règne → espèce)
 
 Les pipelines existants d'export sont conservés et intégrés.
 
 ## Architecture (résumé)
 
 1. **Entrée** : API quotidienne (à venir) ou CSV (`data/raw/observations.csv`).
-2. **Filtrage qualité** (ML) → on garde les images utilisables.
-3. **Détection YOLOv8** (ML) → bboxes + crops.
-4. **Classification hiérarchique** (ML) → taxonomie.
-5. **Label Studio** : boucle d'annotation/correction si besoin.
-6. **Dataviz** : CSV compatible Metabase (puis dashboard).
-7. **Exports** : CSV d'annotations (base de données plus tard).
+2. **Détection DINO/YOLOv8** (ML) → bboxes + crops.
+3. **Classification hiérarchique** (ML) → taxonomie.
+4. **Label Studio** : boucle d'annotation/correction si besoin.
+5. **Dataviz** : CSV compatible Metabase (puis dashboard).
+6. **Exports** : CSV d'annotations (base de données plus tard).
 
 ## Structure du repo
 
 ```
 biolit/                # Lib Python (taxref, observations, dataviz)
 pipelines/             # Orchestration
-ml/                    # Dossiers des 3 tâches ML
+ml/                    # Dossiers des 2 tâches ML
 dataviz/               # Docs dataviz
 infra/                 # Docker Compose (Label Studio)
 data/                  # Workspace local (non versionné)
@@ -32,7 +30,6 @@ data/                  # Workspace local (non versionné)
 ### Dossiers data (proposés)
 
 - `data/raw/` : CSV brut + images du jour (dump API)
-- `data/staging/` : images filtrées qualité + métadonnées
 - `data/crops/` : crops issus de YOLOv8
 - `data/label-studio/files/` : images à annoter
 - `data/exports/` : sorties CSV (annotations, qualité, etc.)
@@ -55,15 +52,16 @@ source .venv/bin/activate
 ## Flux quotidien (API → ML → Label Studio)
 
 1. **Récupération quotidienne** depuis l'API (à venir) ou CSV local.
-2. **Qualité** : si l'image est mauvaise → stop.
-3. **YOLOv8** : détection + crop.
-   - si aucune détection → **Label Studio (CROP)**
-   - si crop manuel → retour vers **annotation**
-4. **Classification** : prédiction + probabilité.
+
+2. **DINO/YOLOv8** : détection + crop.
+   - si détection forte → **Classification**
+   - si détection faible → **Label Studio (CROP)**
+   - si pas de détection animal ou végétal → stop
+3. **Classification** : prédiction + probabilité.
    - certitude faible → **Label Studio (pré-annotations + probas)**
    - certitude forte → export direct
-5. **Export CSV** : `data/exports/annotations.csv`
-6. **Dataviz** : `data/dataviz/observations.csv` (Metabase)
+4. **Export CSV** : `data/exports/annotations.csv`
+5. **Dataviz** : `data/dataviz/observations.csv` (Metabase)
 
 ## Enrichissement des données
 
