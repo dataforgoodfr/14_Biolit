@@ -1,44 +1,44 @@
-Taxons;Nom scientifique;Nom vernaculaire
-1.CrustacÈs;Callinectes sapidus;Crabe bleu
-;Eriocheir sinensis;Crabe chinois
-;Percnon gibbesi;Sally pied lÈger
-;Austrominius modestus;Balane croix de Malte
-2.CtÈnophore et AnnÈlide;Mnemiopsis leidyi;MnÈmiopsis
-;Ficopomatus enigmaticus;Cascail
-3.Mollusques;Arcuatula senhousia;Moule asiatique
-;Brachidontes pharaonis;Moule de la Mer Rouge
-;Magallana gigas;HuÓtre creuse
-;Rapana venosa;Rapane veinÈ
-;Crepidula fornicata;CrÈpidule
-4.Algues;Asparagopsis armata;Asparagopsis ‡ crochets
-;Asparagopsis taxiformis;Asparagopsis if
-;Caulerpa cylindracea;Caulerpe grain de raisin
-;Caulerpa taxifolia;Caulerpe ‡ feuilles d'if
-;Codium fragile;Codium fragile
-;Grateloupia turuturu;Grateloupe du Pacifique
-;Rugulopteryx okamurae;Rugulopteryx
-;Sargassum muticum;Sargasse
-;Undaria pinnatifida;WakamÈ
-5.Tuniciers;Styela clava;Ascidie massue
-;Styela plicata;Ascidie plissÈe
-1.CrustacÈs;Austrominius modestus;Balane croix de Malte
-;Callinectes sapidus;Crabe bleu
-;Caprella mutica;Caprelle japonaise
-;Eriocheir sinensis;Crabe chinois
-;Hemigrapsus sanguineus;Grapse sanguin
-;Hemigrapsus takanoi;Crabe ‡ pinceaux de Takano
-2.Mollusques;Crepidula fornicata;CrÈpidule
-;Magallana gigas;HuÓtre creuse
-;Urosalpinx cinerea;Perceur d'huÓtres Atlantique
-;Rapana venosa;Rapane veinÈ
-3.Algues;Asparagopsis armata;Asparagopsis ‡ crochets
-;Codium fragile;Codium fragile
-;Grateloupia turuturu;Grateloupe du Pacifique
-;Sargassum muticum;Sargasse
-;Undaria pinnatifida;WakamÈ
-4.Tuniciers;Corella eumyota;Ascidie cartilagineuse
-;Styela clava;Ascidie massue
-5.CtÈnophore, Cnidaire, Bryozaire;Blackfordia virginica;MÈduse de la Mer Noire
-;Mnemiopsis leidyi;MnÈmiopsis
-;Watersipora subatra;Bryozoaire orange vif et noir ‡ points noirs
-;Bugula neritina;Bugule brune
+Taxon,Nom scientifique,Nom vernaculaire
+1.Crustac√©s,Callinectes sapidus,Crabe bleu
+1.Crustac√©s,Eriocheir sinensis,Crabe chinois
+1.Crustac√©s,Percnon gibbesi,Sally pied l√©ger
+1.Crustac√©s,Austrominius modestus,Balane croix de Malte
+2.Ct√©nophore et Ann√©lide,Mnemiopsis leidyi,Mn√©miopsis
+2.Ct√©nophore et Ann√©lide,Ficopomatus enigmaticus,Cascail
+3.Mollusques,Arcuatula senhousia,Moule asiatique
+3.Mollusques,Brachidontes pharaonis,Moule de la Mer Rouge
+3.Mollusques,Magallana gigas,Hu√Ætre creuse
+3.Mollusques,Rapana venosa,Rapane vein√©
+3.Mollusques,Crepidula fornicata,Cr√©pidule
+4.Algues,Asparagopsis armata,Asparagopsis √† crochets
+4.Algues,Asparagopsis taxiformis,Asparagopsis if
+4.Algues,Caulerpa cylindracea,Caulerpe grain de raisin
+4.Algues,Caulerpa taxifolia,Caulerpe √† feuilles d'if
+4.Algues,Codium fragile,Codium fragile
+4.Algues,Grateloupia turuturu,Grateloupe du Pacifique
+4.Algues,Rugulopteryx okamurae,Rugulopteryx
+4.Algues,Sargassum muticum,Sargasse
+4.Algues,Undaria pinnatifida,Wakam√©
+5.Tuniciers,Styela clava,Ascidie massue
+5.Tuniciers,Styela plicata,Ascidie pliss√©e
+1.Crustac√©s,Austrominius modestus,Balane croix de Malte
+1.Crustac√©s,Callinectes sapidus,Crabe bleu
+1.Crustac√©s,Caprella mutica,Caprelle japonaise
+1.Crustac√©s,Eriocheir sinensis,Crabe chinois
+1.Crustac√©s,Hemigrapsus sanguineus,Grapse sanguin
+1.Crustac√©s,Hemigrapsus takanoi,Crabe √† pinceaux de Takano
+2.Mollusques,Crepidula fornicata,Cr√©pidule
+2.Mollusques,Magallana gigas,Hu√Ætre creuse
+2.Mollusques,Urosalpinx cinerea,Perceur d'hu√Ætres Atlantique
+2.Mollusques,Rapana venosa,Rapane vein√©
+3.Algues,Asparagopsis armata,Asparagopsis √† crochets
+3.Algues,Codium fragile,Codium fragile
+3.Algues,Grateloupia turuturu,Grateloupe du Pacifique
+3.Algues,Sargassum muticum,Sargasse
+3.Algues,Undaria pinnatifida,Wakam√©
+4.Tuniciers,Corella eumyota,Ascidie cartilagineuse
+4.Tuniciers,Styela clava,Ascidie massue
+"5.Ct√©nophore, Cnidaire, Bryozaire",Blackfordia virginica,M√©duse de la Mer Noire
+"5.Ct√©nophore, Cnidaire, Bryozaire",Mnemiopsis leidyi,Mn√©miopsis
+"5.Ct√©nophore, Cnidaire, Bryozaire",Watersipora subatra,Bryozoaire orange vif et noir √† points noirs
+"5.Ct√©nophore, Cnidaire, Bryozaire",Bugula neritina,Bugule brune
