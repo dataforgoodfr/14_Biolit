@@ -4,7 +4,7 @@ import polars as pl
 import structlog
 from polars import col
 
-from biolit import DATADIR, EXPORTDIR
+from biolit import DATADIR, EXPORTDIR, CONFIGDIR
 from biolit.taxref import TAXREF_HIERARCHY, format_taxref
 from biolit.visualisation.species_distribution import plot_species_distribution
 
@@ -156,3 +156,38 @@ def learnable_taxonomy(
         for taxon in learnables
     ] + [remaining_taxon]
     return sorted(set(itertools.chain(*learnable_sublevels)))
+
+
+def _check_focus_species():
+    file_path = CONFIGDIR / "2026_esp_nouveaux_arrivants.xlsx"
+    df_med = pl.read_excel(
+        file_path, 
+        has_header=False,
+        read_options={
+            "skip_rows": 1
+            }, 
+        columns = [0, 1, 2]
+        )
+    df_atl = pl.read_excel(
+        file_path, 
+        has_header=False,
+        read_options={
+            "skip_rows": 1
+            }, 
+        columns = [3, 4, 5]
+        )
+    df_merged = pl.concat(
+        [df_med.slice(1), 
+        df_atl.slice(1)]
+        ).rename(
+            {"column_1": "Taxon", 
+             "column_2": "Nom scientifique", 
+             "column_3": "Nom vernaculaire"}
+             )
+    df_merged = df_merged.with_columns(pl.col("Taxon").fill_null(strategy="forward"))
+    taxref = pl.read_parquet("taxref.parquet").select(["species_name"])
+    for name in df_merged["Nom scientifique"]:
+        if name.lower() not in taxref["species_name"]:
+            df_merged = df_merged.filter(pl.col("Nom scientifique") == name)
+            LOGGER.warning(f"Species {name} not found in TaxRef.")
+    df_merged.write_csv(CONFIGDIR / "focus_species.csv")
