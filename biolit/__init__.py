@@ -6,6 +6,7 @@ ROOTDIR = Path(__file__).parent / ".."
 DATADIR = ROOTDIR / "data"
 RAWDIR = DATADIR / "raw"
 EXPORTDIR = DATADIR / "exports"
+CONFIGDIR = Path(__file__) / "config"
 
 # /!\ URL emporaire de l'archive le temps que le museum corrige sa cybersec...
 TAXREFURL = "https://assets.patrinat.fr/files/referentiel/TAXREF_v18_2025.zip"

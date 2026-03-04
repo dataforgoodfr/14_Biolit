@@ -1,0 +1,44 @@
+Taxon,Nom scientifique,Nom vernaculaire
+1.Crustacés,Callinectes sapidus,Crabe bleu
+1.Crustacés,Eriocheir sinensis,Crabe chinois
+1.Crustacés,Percnon gibbesi,Sally pied léger
+1.Crustacés,Austrominius modestus,Balane croix de Malte
+2.Cténophore et Annélide,Mnemiopsis leidyi,Mnémiopsis
+2.Cténophore et Annélide,Ficopomatus enigmaticus,Cascail
+3.Mollusques,Arcuatula senhousia,Moule asiatique
+3.Mollusques,Brachidontes pharaonis,Moule de la Mer Rouge
+3.Mollusques,Magallana gigas,Huître creuse
+3.Mollusques,Rapana venosa,Rapane veiné
+3.Mollusques,Crepidula fornicata,Crépidule
+4.Algues,Asparagopsis armata,Asparagopsis à crochets
+4.Algues,Asparagopsis taxiformis,Asparagopsis if
+4.Algues,Caulerpa cylindracea,Caulerpe grain de raisin
+4.Algues,Caulerpa taxifolia,Caulerpe à feuilles d'if
+4.Algues,Codium fragile,Codium fragile
+4.Algues,Grateloupia turuturu,Grateloupe du Pacifique
+4.Algues,Rugulopteryx okamurae,Rugulopteryx
+4.Algues,Sargassum muticum,Sargasse
+4.Algues,Undaria pinnatifida,Wakamé
+5.Tuniciers,Styela clava,Ascidie massue
+5.Tuniciers,Styela plicata,Ascidie plissée
+1.Crustacés,Austrominius modestus,Balane croix de Malte
+1.Crustacés,Callinectes sapidus,Crabe bleu
+1.Crustacés,Caprella mutica,Caprelle japonaise
+1.Crustacés,Eriocheir sinensis,Crabe chinois
+1.Crustacés,Hemigrapsus sanguineus,Grapse sanguin
+1.Crustacés,Hemigrapsus takanoi,Crabe à pinceaux de Takano
+2.Mollusques,Crepidula fornicata,Crépidule
+2.Mollusques,Magallana gigas,Huître creuse
+2.Mollusques,Urosalpinx cinerea,Perceur d'huîtres Atlantique
+2.Mollusques,Rapana venosa,Rapane veiné
+3.Algues,Asparagopsis armata,Asparagopsis à crochets
+3.Algues,Codium fragile,Codium fragile
+3.Algues,Grateloupia turuturu,Grateloupe du Pacifique
+3.Algues,Sargassum muticum,Sargasse
+3.Algues,Undaria pinnatifida,Wakamé
+4.Tuniciers,Corella eumyota,Ascidie cartilagineuse
+4.Tuniciers,Styela clava,Ascidie massue
+"5.Cténophore, Cnidaire, Bryozaire",Blackfordia virginica,Méduse de la Mer Noire
+"5.Cténophore, Cnidaire, Bryozaire",Mnemiopsis leidyi,Mnémiopsis
+"5.Cténophore, Cnidaire, Bryozaire",Watersipora subatra,Bryozoaire orange vif et noir à points noirs
+"5.Cténophore, Cnidaire, Bryozaire",Bugula neritina,Bugule brune
