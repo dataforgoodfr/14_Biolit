@@ -1,5 +1,5 @@
 """
-Benchmark de prompts textuels pour Grounding DINO 
+Benchmark de prompts textuels pour Grounding DINO
 
 Ce script teste différents textes de recherche (prompts) sur un lot d'images
 pour trouver lequel détecte le mieux les organismes marins du projet BioLit.
@@ -9,7 +9,6 @@ Utilisation :
 """
 
 # ── Imports ────────────────────────────────────────────────────────────────────
-import os
 import random
 import argparse
 from pathlib import Path
