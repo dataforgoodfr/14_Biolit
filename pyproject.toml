@@ -25,6 +25,7 @@ dependencies = [
     "plotly>=6.5.0",
     "polars>=1.36.1",
     "pre-commit>=4.5.1",
+    "prefect>=3.6.22",
     "pyarrow>=23.0.0",
     "pytest>=9.0.2",
     "requests>=2.32.3",
