@@ -8,7 +8,7 @@ from sqlalchemy import create_engine, text
 # -------------------------
 
 def get_engine():
-    postgres_url = os.getenv("POSTGRES_URL")
+    postgres_url = os.getenv("DATABASE_URL")
 
     if not postgres_url:
         raise ValueError("Missing POSTGRES_URL")
@@ -83,7 +83,7 @@ def insert_dataframe(df: pl.DataFrame):
     with engine.begin() as conn:
         for row in rows:
             conn.execute(text("""
-                INSERT INTO observations (
+                INSERT INTO observations_biolit_api (
                     id_observation,
                     date_observation,
                     lien_observation,
@@ -100,7 +100,8 @@ def insert_dataframe(df: pl.DataFrame):
                     nom_scientifique,
                     nom_commun,
                     categorie_programme,
-                    programme
+                    programme,
+                    validee
                 ) VALUES (
                     :id_observation,
                     :date_observation,
@@ -118,7 +119,8 @@ def insert_dataframe(df: pl.DataFrame):
                     :nom_scientifique,
                     :nom_commun,
                     :categorie_programme,
-                    :programme
+                    :programme,
+                    :validee
                 )
                 ON CONFLICT (id_observation) DO NOTHING
             """), row)

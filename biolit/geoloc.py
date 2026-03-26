@@ -1,9 +1,11 @@
+from dotenv import load_dotenv
 import geopandas as gpd
 from shapely.geometry import Point
 from typing import Tuple, Optional
 import polars as pl
 import pandas as pd
 import requests
+from sqlalchemy import create_engine
 import structlog
 from pathlib import Path
 import zipfile
@@ -14,19 +16,18 @@ from folium.plugins import MarkerCluster
 from biolit import DATADIR, DATA_GOUV_INFO_COMMUNES_URL, DATA_GOUV_CONTOUR_COMMUNES_URL, WORLD_COAST_LINES_URL
 
 LOGGER = structlog.get_logger()
+load_dotenv()
 
 
-def geoloc_enrichie_data_biolit(file: Path):
+def geoloc_enrichie_data_biolit():
     """
-    Fichier à enrichir : DATADIR / "biolit_valid_observations.parquet"
+    Connexion à la base de données issue de l'API
     Fonction finale :
         - Enrichissement de la commune la plus proche
         - Création de la colonne "is_coastal" -> est ce que le point est proche du littoral
         - Export vers fichier parquet
     """
-    if not _check_file_existence(file):
-        return
-    df_biolit = get_biolit_df(file)
+    df_biolit = get_biolit_df_from_db()
     df = get_info_nearest_commune(df_biolit)
     df_coastal = get_info_distance_to_coast(df, 8000)
 
@@ -35,24 +36,21 @@ def geoloc_enrichie_data_biolit(file: Path):
     df_coastal.to_parquet(export_path_geoloc_enrichie)
     LOGGER.info(f"Files exported: {export_path_geoloc_enrichie}")
 
-def get_biolit_df(file: Path) -> pd.DataFrame:
-    """ Fonction qu'il faudra modifier une fois qu'on aura l'export clean de la donnée biolit """
-    biolit_df = (
-        pl.read_parquet(file)
-        )
-    biolit_df = biolit_df.with_columns([
-        pl.col("longitude_-_n1")
-        .str.replace(",", ".")
-        .cast(pl.Float64),
-        pl.col("latitude_-_n1")
-        .str.replace(",", ".")
-        .cast(pl.Float64)
-    ])
+def get_biolit_df_from_db():
+    try:
+        engine = create_engine(os.environ["DATABASE_URL"])
 
-    biolit_df = biolit_df.to_pandas()
+        query = "SELECT * FROM observations_biolit_api"
+        df = pd.read_sql(query, engine)
 
-    LOGGER.info("biolit df uploaded", count=len(biolit_df))
-    return biolit_df
+        LOGGER.info("biolit df uploaded", count=len(df))
+        LOGGER.info("Colonnes df", values=list(df.columns))
+
+        return df
+
+    except Exception as e:
+        LOGGER.error("Erreur lors de la récupération des données depuis PostgreSQL", error=str(e))
+        return None
 
 def download_geometry_communes(targetpath: Path):
     """
@@ -121,6 +119,19 @@ def download_trace_littoral(targetpath: Path):
     else:
         LOGGER.info("Shapefile ready", file=str(shp_files[0]))
 
+def simplify_trace_littoral(file: Path) -> Path:
+    """ Diminuer la précision du littoral pour ne pas surcharger nos tâches """
+    if not _check_file_existence(file):
+        LOGGER.info(f"This file does not exist: {file}")
+        return
+    coast_gdf = gpd.read_file(file)
+    coast_gdf['geometry'] = coast_gdf['geometry'].simplify(tolerance=50)
+    export_path_trace_littoral_simplify = DATADIR / "geoloc" / "coast_file_simplified" / "coastlines.shp"
+    export_path_trace_littoral_simplify.parent.mkdir(parents=True, exist_ok=True)
+    coast_gdf.to_file(export_path_trace_littoral_simplify)
+    LOGGER.info(f"Files exported: {export_path_trace_littoral_simplify}")
+    return
+
 def get_trace_littoral(file: Path) -> gpd.GeoDataFrame:
     if not _check_file_existence(file):
         LOGGER.info(f"This file does not exist: {file}")
@@ -182,7 +193,7 @@ def get_info_nearest_commune(frame: pd.DataFrame) -> pd.DataFrame:
     biolit_df = frame
     gdf = gpd.GeoDataFrame(
         biolit_df,
-        geometry=gpd.points_from_xy(biolit_df["longitude_-_n1"], biolit_df["latitude_-_n1"]),
+        geometry=gpd.points_from_xy(biolit_df["longitude"], biolit_df["latitude"]),
         crs="EPSG:4326"
     ).to_crs(epsg=2154)
 
@@ -234,15 +245,18 @@ def distance_to_coast(point: Point, coast_gdf: gpd.GeoDataFrame, sindex, search_
 def get_info_distance_to_coast(frame: pd.DataFrame, distance_max: float = 8000) -> pd.DataFrame:
     # Récupération Tracé Littoral
     path_trace_littoral = DATADIR / "geoloc" / "open_street_map" / "coastlines-split-4326" / "lines.shp"
-    if not _check_file_existence(path_trace_littoral):
-        download_trace_littoral(path_trace_littoral)
+    path_trace_littoral_simplified = DATADIR / "geoloc" / "coast_file_simplified" / "coastlines.shp"
+    if not _check_file_existence(path_trace_littoral_simplified):
+        if not _check_file_existence(path_trace_littoral):
+            download_trace_littoral(path_trace_littoral)
+        simplify_trace_littoral(path_trace_littoral)
 
-    coast_gdf = get_trace_littoral(path_trace_littoral)
+    coast_gdf = get_trace_littoral(path_trace_littoral_simplified)
     coast_sindex = coast_gdf.sindex
 
     # Points Biolit
     biolit_df = frame
-    gdf = gpd.GeoDataFrame(biolit_df, geometry=gpd.points_from_xy(biolit_df["longitude_-_n1"], biolit_df["latitude_-_n1"]), crs="EPSG:4326").to_crs(epsg=2154)
+    gdf = gpd.GeoDataFrame(biolit_df, geometry=gpd.points_from_xy(biolit_df["longitude"], biolit_df["latitude"]), crs="EPSG:4326").to_crs(epsg=2154)
     distances = []
 
     for p in gdf.geometry:
@@ -270,7 +284,7 @@ def carte_points_biolit_checks_geoloc(file_to_map: Path):
         return
 
     df = pl.read_parquet(file_to_map)
-    gdf = gpd.GeoDataFrame(df.to_pandas(), geometry=gpd.points_from_xy(df["longitude_-_n1"], df["latitude_-_n1"]), crs="EPSG:4326").dropna(subset=["latitude_-_n1", "longitude_-_n1"])
+    gdf = gpd.GeoDataFrame(df.to_pandas(), geometry=gpd.points_from_xy(df["longitude"], df["latitude"]), crs="EPSG:4326").dropna(subset=["latitude", "longitude"])
 
     carte = folium.Map(location=[48.95, 2.29], zoom_start=6)
 
@@ -280,13 +294,13 @@ def carte_points_biolit_checks_geoloc(file_to_map: Path):
         color = "green" if row["is_coastal"] else "red"
 
         popup_text = (
-            f"ID: {row['id']}<br>"
+            f"ID: {row['id_observation']}<br>"
             f"Côtier: {row['is_coastal']}<br>"
             f"Distance : {row['distance_to_coast']} m"
         )
 
         folium.CircleMarker(
-            location=[row["latitude_-_n1"], row["longitude_-_n1"]],
+            location=[row["latitude"], row["longitude"]],
             radius=3,
             color=color,
             fill=True,
@@ -296,3 +310,4 @@ def carte_points_biolit_checks_geoloc(file_to_map: Path):
         ).add_to(marker_cluster)
     carte.save(DATADIR / 'carte_points_biolit.html')
     LOGGER.info('Map created')
+

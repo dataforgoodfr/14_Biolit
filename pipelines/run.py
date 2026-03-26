@@ -1,21 +1,25 @@
-from biolit.export_api import fetch_biolit_from_api, adapt_api_to_dataframe
+from biolit.export_api import load_biolit_from_api
 from biolit.postgres import prepare_dataframe_for_postgres, insert_dataframe
+from biolit.geoloc import geoloc_enrichie_data_biolit
+import structlog
+
+LOGGER = structlog.get_logger()
 
 
 def run_pipeline():
-    print("Fetching data...")
-    data = fetch_biolit_from_api()
+    LOGGER.info("Fetching data...")
+    data = load_biolit_from_api()
 
-    print("Transforming...")
-    df = adapt_api_to_dataframe(data)
+    LOGGER.info("Preparing for Postgres...")
+    df = prepare_dataframe_for_postgres(data)
 
-    print("Preparing for Postgres...")
-    df = prepare_dataframe_for_postgres(df)
-
-    print("Loading into Postgres...")
+    LOGGER.info("Loading into Postgres...")
     insert_dataframe(df)
 
-    print("DONE ✅")
+    LOGGER.info("DONE ✅")
+
+    LOGGER.info("Enrichment Geoloc")
+    geoloc_enrichie_data_biolit()
 
 
 if __name__ == "__main__":

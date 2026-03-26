@@ -10,11 +10,14 @@ from biolit import DATADIR
 LOGGER = structlog.get_logger()
 
 
-def scrapping_site_lien_doris() -> pl.DataFrame:
+def scrapping_site_lien_doris(max_offset: int = 100) -> pl.DataFrame:
     offset = 0
     lien_doris_all_data = []
 
     while True:
+        if offset >= max_offset:
+            LOGGER.info("Atteint le max_offset pour test, fin du scraping.")
+            break
         url = f"https://doris.ffessm.fr/find/species/(offset)/{offset}/(state)/*/(sortby)/recent/(manualSort)/1/(view)/list"
         LOGGER.info(f"Scraping offset = {offset}")
 

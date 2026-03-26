@@ -1,0 +1,21 @@
+# Fichiers système
+*.pyc
+*.pyo
+*.pyd
+__pycache__/
+*.swp
+.DS_Store
+
+# Environnements virtuels locaux
+venv/
+.env
+.venv
+
+# Git
+.git
+.gitignore
+
+# Dossiers
+orchestrateur/
+infra/
+data/
