@@ -36,7 +36,14 @@ dependencies = [
     "shapely>=2.1.2",
     "structlog>=25.5.0",
     "tqdm>=4.67.3",
-    "transformers>=5.2.0",
+    "transformers==4.41.2",
+    "torch>=2.11.0",
+    "roboflow>=1.2.16",
+    "autodistill>=0.1.29",
+    "autodistill-grounding-dino>=0.1.4",
+    "autodistill-yolov8>=0.1.4",
+    "supervision>=0.27.0.post2",
+    "scikit-learn>=1.8.0",
 ]
 
 [tool.pytest.ini_options]
