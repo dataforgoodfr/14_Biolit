@@ -7,9 +7,7 @@ from autodistill_grounding_dino import GroundingDINO
 from autodistill.detection import CaptionOntology
 from autodistill_yolov8 import YOLOv8
 
-# ---------------------------------------------------------------------------
 # Fix PyTorch / Ultralytics / NumPy
-# ---------------------------------------------------------------------------
 torch.use_deterministic_algorithms(False)
 _original_load = torch.load
 torch.load = lambda *args, **kwargs: _original_load(*args, **kwargs, weights_only=False)
@@ -21,9 +19,7 @@ if not hasattr(np, "trapz"):
 VALID_IMG_EXT = {".jpg", ".jpeg", ".png", ".bmp", ".tiff", ".webp"}
 
 
-# ---------------------------------------------------------------------------
 # Helpers
-# ---------------------------------------------------------------------------
 def sanitize_filenames(img_dir: str) -> None:
     """Renomme les fichiers avec accents → ASCII safe (cv2.imread échoue sur macOS sinon)"""
     for f in Path(img_dir).iterdir():
@@ -74,9 +70,7 @@ def load_config(path: str = "configs/autodistill_boostrap.yaml") -> dict:
         return yaml.safe_load(f)
 
 
-# ---------------------------------------------------------------------------
 # Pipeline
-# ---------------------------------------------------------------------------
 def label(cfg: dict) -> None:
     print("[1/2] Pseudo-labeling GroundingDINO")
 
@@ -114,9 +108,7 @@ def train(cfg: dict) -> None:
     )
 
 
-# ---------------------------------------------------------------------------
 # Main
-# ---------------------------------------------------------------------------
 if __name__ == "__main__":
     cfg = load_config()
     sanitize_filenames(cfg["img_path"])
