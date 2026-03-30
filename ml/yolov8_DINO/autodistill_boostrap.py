@@ -28,7 +28,6 @@ def sanitize_filenames(img_dir: str) -> None:
     """Renomme les fichiers avec accents → ASCII safe (cv2.imread échoue sur macOS sinon)"""
     for f in Path(img_dir).iterdir():
         if f.is_file():
-            # Décompose les caractères accentués (NFD) puis supprime les diacritiques
             nfkd = unicodedata.normalize("NFKD", f.name)
             ascii_name = "".join(c for c in nfkd if not unicodedata.combining(c))
             if ascii_name != f.name:
@@ -55,7 +54,7 @@ def clean_non_images(img_dir: str) -> list[Path]:
 
     for f in non_images:
         f.rename(tmp / f.name)
-        print(f"⚠️  Déplacé (non-image) : {f.name}")
+        print(f"Déplacé (non-image) : {f.name}")
 
     return non_images
 
@@ -93,7 +92,6 @@ def label(cfg: dict) -> None:
             output_folder=cfg["labeled_output"],
         )
     finally:
-        # Restaure quoi qu'il arrive (crash, KeyboardInterrupt…)
         restore_non_images(cfg["img_path"])
 
     print(f"Labels générés → {cfg['labeled_output']}")
@@ -107,7 +105,6 @@ def train(cfg: dict) -> None:
 
     device = cfg["device"] if torch.cuda.is_available() else "cpu"
     model = YOLOv8(cfg["model"])
-    # project/name passés directement à ultralytics (non exposés par le wrapper autodistill)
     model.yolo.train(
         data=cfg["data_yaml"],
         epochs=cfg["epochs"],
@@ -123,5 +120,5 @@ def train(cfg: dict) -> None:
 if __name__ == "__main__":
     cfg = load_config()
     sanitize_filenames(cfg["img_path"])
-    # label(cfg)
+    label(cfg)
     train(cfg)
