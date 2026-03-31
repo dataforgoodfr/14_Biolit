@@ -56,12 +56,12 @@ def inspect(img_dir: str):
             print(f"{name:<30} {count} image(s)")
 
     if corrupted:
-        print(f"\nFichiers corrompus :")
+        print("\nFichiers corrompus :")
         for name in corrupted:
             print(f" - {name}")
 
     if too_small:
-        print(f"\nFichiers trop petits :")
+        print("\nFichiers trop petits :")
         for name in too_small:
             print(f" - {name}")
 

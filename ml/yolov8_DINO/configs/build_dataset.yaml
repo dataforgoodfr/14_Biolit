@@ -1,9 +1,9 @@
-# Chemins 
+# Chemins
 data_path: dataset_biolit/export_biolit.csv
 base_dir: dataset_biolit
 images_dir: dataset_biolit/images
 
-# Téléchargement 
+# Téléchargement
 timeout: 10
 max_workers: 16
 valid_extensions: ["jpg", "jpeg", "png", "webp"]

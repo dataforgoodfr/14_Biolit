@@ -14,10 +14,10 @@ torch.load = lambda *a, **kw: _orig(*a, **kw, weights_only=False)
 if not hasattr(np, "trapz"):
     np.trapz = np.trapezoid
 
-from autodistill_yolov8 import YOLOv8
+from autodistill_yolov8 import YOLOv8  # noqa: E402
 
 sys.path.insert(0, str(Path(__file__).parent))
-from utils.logger import get_logger
+from utils.logger import get_logger  # noqa: E402
 
 log = get_logger("autodistill_train")
 
