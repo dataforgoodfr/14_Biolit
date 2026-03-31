@@ -9,7 +9,7 @@ labeled_output: dataset_biolit/labeled-images
 data_yaml: dataset_biolit/labeled-images/data.yaml
 
 # Modèle 
-model: yolov8l.pt
+model: yolov8s.pt # en test utiliser n au lieu de s
 
 # Hyperparams
 epochs: 100
@@ -21,6 +21,6 @@ device: 0
 label_smoothing: 0.1
 dropout: 0.1
 
-# Sorties 
+# Sorties
 project: runs/
 name: biolit_v2_bootstrap

@@ -176,3 +176,10 @@ data.yaml
 # orchestrateur - tests Timothée
 orchestrateur/
 flows/
+images/
+labeled-images/
+_non_images_tmp/
+yolov8n.pt
+images_test/
+labeled_test/
+runs/
