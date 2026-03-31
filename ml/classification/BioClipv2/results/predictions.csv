@@ -1,0 +1,237 @@
+image,best_level,best_label,best_score,margin,path,top1_espece,conf_espece,top2_espece
+102210_Tomate_de_mer_de_l'Atlantique_1802_animal fish snail_0.32.jpg,species_name,mytilus galloprovincialis,67%,0.347,proto_clip,mytilus galloprovincialis,67%,mytilus edulis
+102210_Tomate_de_mer_de_l'Atlantique_1802_marine plant_0.35.jpg,species_name,anemonia viridis,50%,0.466,proto_clip,anemonia viridis,50%,fucus vesiculosus
+105118_Botrylle_de_San_Diego_1831_plant_0.35.jpg,classe,Hydrozoa,68%,0.159,mlp,elysia viridis,23%,flabellia petiolata
+105118_Botrylle_de_San_Diego_1831_starfish_0.51.jpg,species_name,botrylloides diegensis,100%,1.000,proto_clip,botrylloides diegensis,100%,watersipora subatra
+106074_Crabe_de_pierre_1874_crab_0.79.jpg,species_name,xantho hydrophilus,100%,0.999,proto_clip,xantho hydrophilus,100%,sacculina carcini
+106074_Crabe_de_pierre_1874_plant_0.18.jpg,phylum,Cnidaria,59%,0.005,mlp,alcedo atthis,8%,caulerpa cylindracea
+106176_algae brown algae_0.23.jpg,ordre,Neogastropoda,54%,0.033,mlp,bifurcaria bifurcata,10%,eunicella verrucosa
+106176_algae_0.35.jpg,species_name,codium fragile subsp. fragile,71%,0.641,proto_clip,codium fragile subsp. fragile,71%,eunicella cavolini
+106176_flower_0.19.jpg,species_name,symsagittifera roscoffensis,59%,0.568,proto_clip,symsagittifera roscoffensis,59%,lagurus ovatus
+106830_Anémone_parasite_1899_mussel mollusk_0.38.jpg,regne,Animalia,100%,0.042,mlp,patella caerulea,15%,clavelina lepadiformis
+106830_Anémone_parasite_1899_white oval bone_0.19.jpg,regne,Animalia,100%,0.042,mlp,symsagittifera roscoffensis,11%,sterna hirundo
+107658_2_flower_0.56.jpg,species_name,crithmum maritimum,100%,1.000,proto_clip,crithmum maritimum,100%,cakile maritima
+107847_2_plant_0.49.jpg,famille,Posidoniaceae,97%,0.074,mlp,posidonia oceanica,17%,egretta garzetta
+109229_Vélelle_2026_amp marine plant_0.40.jpg,species_name,velella velella,99%,0.994,proto_clip,velella velella,99%,ardea cinerea
+109229_Vélelle_2026_white oval bone_0.27.jpg,species_name,velella velella,94%,0.936,proto_clip,velella velella,94%,coscinasterias tenuispina
+110038_Anatife_commun_2073_snail_0.42.jpg,species_name,lepas (anatifa) anatifera,100%,1.000,proto_clip,lepas (anatifa) anatifera,100%,lithophaga lithophaga
+26110_flower_0.19.jpg,phylum,Echinodermata,53%,0.004,mlp,marthasterias glacialis,7%,asparagopsis armata
+26362_animal mollusk_0.21.jpg,species_name,magallana gigas,100%,0.999,proto_clip,magallana gigas,100%,ostrea edulis
+26364_plant sea_0.42.jpg,species_name,codium fragile subsp. fragile,100%,1.000,proto_clip,codium fragile subsp. fragile,100%,bifurcaria bifurcata
+58008_flower_0.28.jpg,regne,Animalia,97%,0.087,mlp,eunicella singularis,14%,apogon imberbis
+58008_plant flower_0.20.jpg,phylum,Mollusca,67%,0.091,mlp,acetabularia acetabulum,18%,himanthalia elongata
+58008_plant_0.26.jpg,species_name,halimione portulacoides,100%,1.000,proto_clip,halimione portulacoides,100%,atriplex halimus
+58419_snail mussel_0.42.jpg,species_name,stramonita haemastoma,99%,0.993,proto_clip,stramonita haemastoma,99%,ocenebra erinaceus
+58419_snail_0.15.jpg,phylum,Cnidaria,52%,0.025,mlp,zeus faber,10%,donax trunculus
+62433_13_insect_0.23.jpg,species_name,palaemon elegans,79%,0.590,proto_clip,palaemon elegans,79%,palaemon serratus
+62434_7_animal fish_0.60.jpg,species_name,gaidropsarus vulgaris,76%,0.528,proto_clip,gaidropsarus vulgaris,76%,conger conger
+62536_10_animal fish_0.37.jpg,phylum,Mollusca,89%,0.001,mlp,diplodus puntazzo,11%,halocynthia papillosa
+62536_10_insect_0.21.jpg,regne,Animalia,100%,0.014,mlp,amphipholis squamata,43%,eunicella verrucosa
+62536_10_plant_0.20.jpg,classe,Hydrozoa,72%,0.283,mlp,elysia viridis,43%,parablennius incognitus
+62731_6_crab_0.78.jpg,species_name,xantho hydrophilus,90%,0.891,proto_clip,xantho hydrophilus,90%,phorcus turbinatus
+62731_6_plant_0.34.jpg,phylum,Cnidaria,65%,0.025,mlp,cymbulia peronii,9%,aporrhais pespelecani
+62793_2_animal crab_0.23.jpg,famille,Trochidae,100%,0.086,mlp,steromphala umbilicalis,19%,parablennius pilicornis
+63063_animal fish_0.39.jpg,species_name,sepia officinalis,61%,0.582,proto_clip,sepia officinalis,61%,lutraria lutraria
+63063_insect_0.16.jpg,ordre,Neogastropoda,58%,0.244,mlp,cymbulia peronii,35%,fucus vesiculosus
+63063_plant_0.29.jpg,famille,Posidoniaceae,63%,0.002,mlp,lagurus ovatus,20%,cymbulia peronii
+63094_1_animal fish_0.50.jpg,famille,Rajidae,100%,0.012,mlp,raja undulata,51%,raja brachyura
+63094_1_insect_0.16.jpg,classe,Hydrozoa,50%,0.003,mlp,pelvetia canaliculata,17%,amphipholis squamata
+63445_2_animal fish_0.56.jpg,species_name,seriola rivoliana,91%,0.840,proto_clip,seriola rivoliana,91%,sparus aurata
+63445_2_insect mussel_0.38.jpg,regne,Animalia,100%,0.278,mlp,ensis ensis,44%,ensis magnus
+63576_10_flower_0.18.jpg,famille,Posidoniaceae,53%,0.282,mlp,symsagittifera roscoffensis,33%,alcedo atthis
+63576_10_plant_0.46.jpg,ordre,Littorinimorpha,65%,0.153,mlp,symsagittifera roscoffensis,21%,atriplex halimus
+63576_1_animal_0.18.jpg,ordre,Neogastropoda,62%,0.346,mlp,arenaria interpres,40%,doris pseudoargus
+63576_1_brown algae_0.23.jpg,species_name,sabellaria alveolata,52%,0.408,proto_clip,sabellaria alveolata,52%,posidonia oceanica
+63576_1_plant tree_0.24.jpg,phylum,Mollusca,58%,0.087,mlp,lagurus ovatus,23%,atriplex halimus
+63576_1_plant_0.34.jpg,classe,Cephalopoda,54%,0.253,mlp,lagurus ovatus,41%,symsagittifera roscoffensis
+63576_1_tree_0.22.jpg,ordre,Actiniaria,54%,0.148,mlp,symsagittifera roscoffensis,36%,halimione portulacoides
+63805_fish_0.16.jpg,famille,Sepiidae,57%,0.008,mlp,cerastoderma edule,10%,alcedo atthis
+63820_2_animal fish_0.35.jpg,species_name,sepia officinalis,99%,0.988,proto_clip,sepia officinalis,99%,donax trunculus
+63833_Os_de_seiche_85_animal fish_0.30.jpg,species_name,sepia officinalis,100%,0.997,proto_clip,sepia officinalis,100%,clavelina lepadiformis
+63833_Os_de_seiche_85_oval_0.15.jpg,famille,Sepiidae,53%,0.258,mlp,sterna hirundo,31%,dasyatis pastinaca
+63833_Os_de_seiche_85_white oval bone_0.55.jpg,species_name,sepia officinalis,100%,0.998,proto_clip,sepia officinalis,100%,clavelina lepadiformis
+64082_Huître_plate_114_white oval bone_0.52.jpg,species_name,ostrea edulis,100%,0.999,proto_clip,ostrea edulis,100%,lutraria lutraria
+64100_Os_de_seiche_rose_121_white oval bone_0.53.jpg,species_name,sepia officinalis,81%,0.795,proto_clip,sepia officinalis,81%,sparus aurata
+64116_Os_de_seiche_rose_125_animal fish_0.29.jpg,species_name,sepia officinalis,96%,0.926,proto_clip,sepia officinalis,96%,ensis magnus
+64116_Os_de_seiche_rose_125_animal_0.15.jpg,species_name,buccinum undatum,65%,0.606,proto_clip,buccinum undatum,65%,pleurobrachia pileus
+64116_Os_de_seiche_rose_125_white oval bone_0.54.jpg,species_name,sepia officinalis,97%,0.946,proto_clip,sepia officinalis,97%,ensis magnus
+64394_2_flower_0.28.jpg,species_name,mytilus edulis,57%,0.502,proto_clip,mytilus edulis,57%,sparus aurata
+64394_2_insect mussel_0.24.jpg,species_name,mytilus edulis,86%,0.848,proto_clip,mytilus edulis,86%,mytilus galloprovincialis
+64490_9_animal fish crab snail flower_0.29.jpg,famille,Carcinidae,100%,0.169,mlp,carcinus maenas,36%,portumnus latipes
+64490_9_flower_0.17.jpg,regne,Animalia,100%,0.049,mlp,ciona intestinalis,17%,tethya citrina
+64490_9_plant_0.23.jpg,regne,Animalia,81%,0.348,mlp,zostera marina,45%,caulerpa cylindracea
+64792_Gibbule_ombiliquée_154_animal snail_0.58.jpg,famille,Littorinidae,81%,0.115,mlp,calliostoma zizyphinum,20%,delphinus delphis
+64798_7_animal snail_0.58.jpg,famille,Littorinidae,81%,0.115,mlp,calliostoma zizyphinum,20%,delphinus delphis
+65405_flower_0.45.jpg,species_name,arbacia lixula,77%,0.554,proto_clip,arbacia lixula,77%,paracentrotus lividus
+65855_14_brown algae_0.18.jpg,ordre,Actiniaria,60%,0.327,mlp,atriplex halimus,38%,alcedo atthis
+65855_14_insect_0.17.jpg,phylum,Ochrophyta,84%,0.111,mlp,eunicella singularis,19%,littorina obtusata
+65855_14_plant_0.18.jpg,species_name,crithmum maritimum,73%,0.696,proto_clip,crithmum maritimum,73%,euphorbia paralias
+65855_16_flower_0.46.jpg,species_name,cakile maritima,92%,0.910,proto_clip,cakile maritima,92%,bolinus brandaris
+65855_6_insect marine plant_0.22.jpg,classe,Ascidiacea,60%,0.265,mlp,cymbulia peronii,36%,euphorbia paralias
+65855_6_insect_0.24.jpg,phylum,Chordata,56%,0.133,mlp,galathea intermedia,18%,clavelina lepadiformis
+65855_6_plant seaweed algae_0.34.jpg,classe,Malacostraca,51%,0.184,mlp,dictyota fasciola,39%,sphaerococcus coronopifolius
+65855_6_plant seaweed_0.36.jpg,ordre,Neogastropoda,58%,0.119,mlp,sphaerococcus coronopifolius,23%,sparus aurata
+65855_6_seaweed_0.21.jpg,regne,Animalia,100%,0.149,mlp,stramonita haemastoma,19%,styela clava
+65979_plant_0.26.jpg,regne,Animalia,87%,0.165,mlp,caulerpa cylindracea,24%,jania rubens
+65993_1_crab_0.73.jpg,species_name,eriphia verrucosa,76%,0.696,proto_clip,eriphia verrucosa,76%,xantho pilipes
+66152_bird_0.76.jpg,species_name,egretta garzetta,100%,1.000,proto_clip,egretta garzetta,100%,ardea alba
+67048_Os_de_seiche_210_animal fish_0.35.jpg,famille,Sepiidae,100%,0.268,mlp,lutraria lutraria,41%,sepia officinalis
+67095_5_mammal_0.19.jpg,phylum,Mollusca,67%,0.100,mlp,symsagittifera roscoffensis,17%,himanthalia elongata
+67095_5_tree_0.26.jpg,classe,Hydrozoa,52%,0.033,mlp,semibalanus balanoides,11%,cerastoderma edule
+67095_6_tree_0.23.jpg,species_name,symsagittifera roscoffensis,89%,0.855,proto_clip,symsagittifera roscoffensis,89%,lagurus ovatus
+67165_3_bird_0.64.jpg,phylum,Mollusca,83%,0.064,mlp,stramonita haemastoma,15%,puffinus yelkouan
+67501_Littorine_des_rochers_219_flower_0.30.jpg,species_name,littorina compressa,78%,0.739,proto_clip,littorina compressa,78%,cerastoderma edule
+67501_Littorine_des_rochers_219_white oval bone_0.19.jpg,species_name,littorina compressa,86%,0.835,proto_clip,littorina compressa,86%,cerastoderma edule
+67501_Littorine_des_rochers_219_white oval_0.16.jpg,phylum,Ochrophyta,65%,0.379,mlp,alcedo atthis,47%,semibalanus balanoides
+67751_12_algae marine plant_0.35.jpg,regne,Animalia,100%,0.167,mlp,uranoscopus scaber,21%,bolinus brandaris
+67751_12_flower_0.15.jpg,phylum,Echinodermata,53%,0.092,mlp,symsagittifera roscoffensis,20%,lagurus ovatus
+67751_12_plant_0.31.jpg,species_name,euphorbia paralias,100%,0.999,proto_clip,euphorbia paralias,100%,lagurus ovatus
+67751_2_insect_0.27.jpg,species_name,sargassum muticum,71%,0.655,proto_clip,sargassum muticum,71%,ascophyllum nodosum
+67751_2_plant seaweed_0.48.jpg,phylum,Mollusca,56%,0.123,mlp,flabellia petiolata,18%,peyssonnelia squamaria
+67751_2_plant_0.17.jpg,classe,Hydrozoa,57%,0.057,mlp,nerophis lumbriciformis,17%,pleurobrachia pileus
+67953_Aigrette_garzette_222_animal bird_0.45.jpg,species_name,anas platyrhynchos,99%,0.985,proto_clip,anas platyrhynchos,99%,egretta garzetta
+67953_Aigrette_garzette_222_bird_0.69.jpg,species_name,egretta garzetta,100%,1.000,proto_clip,egretta garzetta,100%,morus bassanus
+68357_1_animal bird_0.36.jpg,species_name,anas platyrhynchos,99%,0.989,proto_clip,anas platyrhynchos,99%,ardea cinerea
+68357_1_bird_0.25.jpg,regne,Animalia,100%,0.009,mlp,atriplex halimus,10%,phoenicopterus roseus
+68357_1_mammal_0.15.jpg,classe,Actinopterygii,53%,0.031,mlp,alcedo atthis,15%,himanthalia elongata
+68667_Grande_aigrette_234_bird_0.78.jpg,species_name,ardea alba,100%,1.000,proto_clip,ardea alba,100%,egretta garzetta
+68667_Grande_aigrette_234_plant_0.41.jpg,classe,Cephalopoda,53%,0.089,mlp,phoenicopterus roseus,35%,carpobrotus edulis
+68667_Héron_cendré_235_bird_0.82.jpg,species_name,ardea cinerea,100%,1.000,proto_clip,ardea cinerea,100%,alcedo atthis
+68667_Héron_cendré_235_plant_0.17.jpg,species_name,ardea cinerea,100%,0.999,proto_clip,ardea cinerea,100%,symsagittifera roscoffensis
+69053_2_bird_0.23.jpg,phylum,Cnidaria,72%,0.003,mlp,brissus unicolor,4%,lagurus ovatus
+69053_2_mammal_0.22.jpg,famille,Porpitidae,50%,0.029,mlp,symsagittifera roscoffensis,11%,gaidropsarus vulgaris
+69053_2_tree_0.31.jpg,classe,Malacostraca,56%,0.070,mlp,carpobrotus edulis,15%,alcedo atthis
+69591_flower_0.52.jpg,species_name,sphaerococcus coronopifolius,100%,1.000,proto_clip,sphaerococcus coronopifolius,100%,asparagopsis armata
+69623_Pourpre_petite_pierre_259_brown algae coral_0.23.jpg,regne,Animalia,100%,0.001,mlp,asterias rubens,5%,mytilus edulis
+69623_Pourpre_petite_pierre_259_white oval bone_0.29.jpg,phylum,Cnidaria,76%,0.023,mlp,neverita josephinia,9%,patella caerulea
+69761_bird_0.76.jpg,species_name,larus michahellis,100%,1.000,proto_clip,larus michahellis,100%,sterna hirundo
+69761_brown algae_0.36.jpg,classe,Bivalvia,56%,0.015,mlp,numenius arquata,13%,arenaria interpres
+69761_tree_0.25.jpg,species_name,symsagittifera roscoffensis,67%,0.616,proto_clip,symsagittifera roscoffensis,67%,luidia ciliaris
+69907_Dictyote_d'Okamura_276_insect_0.50.jpg,species_name,rugulopteryx okamurae,100%,1.000,proto_clip,rugulopteryx okamurae,100%,fucus serratus
+69966_plant flower_0.41.jpg,species_name,rugulopteryx okamurae,98%,0.970,proto_clip,rugulopteryx okamurae,98%,fucus serratus
+69981_Ascidie_rouge_279_animal fish_0.47.jpg,species_name,halocynthia papillosa,100%,0.996,proto_clip,halocynthia papillosa,100%,echinocardium cordatum
+70784_1_animal fish crab_0.38.jpg,species_name,steromphala umbilicalis,75%,0.694,proto_clip,steromphala umbilicalis,75%,gibbula magus
+71928_plant flower_0.42.jpg,species_name,rugulopteryx okamurae,100%,1.000,proto_clip,rugulopteryx okamurae,100%,fucus serratus
+72836_Bigorneau_perceur_363_insect_0.17.jpg,species_name,ocenebra erinaceus,96%,0.939,proto_clip,ocenebra erinaceus,96%,ocinebrellus inornatus
+72836_Bigorneau_perceur_363_snail_0.51.jpg,famille,Muricidae,100%,0.052,mlp,ocenebra erinaceus,49%,ocinebrellus inornatus
+72976_3_animal fish_0.45.jpg,species_name,velella velella,79%,0.750,proto_clip,velella velella,79%,delphinus delphis
+72976_3_fish_0.18.jpg,famille,Porpitidae,50%,0.102,mlp,muraena helena,19%,botryllus schlosseri
+72989_Argonaute_370_white oval bone_0.50.jpg,species_name,argonauta argo,99%,0.993,proto_clip,argonauta argo,99%,haliotis tuberculata tuberculata
+72991_animal fish snail flower_0.35.jpg,species_name,argonauta argo,99%,0.994,proto_clip,argonauta argo,99%,haliotis tuberculata tuberculata
+73026_animal fish_0.27.jpg,species_name,perforatus perforatus,98%,0.968,proto_clip,perforatus perforatus,98%,calliactis parasitica
+73026_plant seaweed algae_0.48.jpg,species_name,codium fragile subsp. fragile,100%,1.000,proto_clip,codium fragile subsp. fragile,100%,bifurcaria bifurcata
+73026_reptile_0.17.jpg,regne,Animalia,97%,0.084,mlp,eunicella singularis,35%,styela clava
+74302_brown algae_0.17.jpg,species_name,carpobrotus acinaciformis,99%,0.987,proto_clip,carpobrotus acinaciformis,99%,carpobrotus edulis
+74302_flower_0.56.jpg,famille,Trochidae,73%,0.012,mlp,lagurus ovatus,11%,alcedo atthis
+74413_2_flower mushroom_0.32.jpg,regne,Animalia,98%,0.032,mlp,cerastoderma edule,10%,serranus hepatus
+74413_2_flower_0.66.jpg,famille,Aizoaceae,67%,0.002,mlp,carpobrotus acinaciformis,18%,pallenis maritima
+74413_2_plant_0.21.jpg,species_name,carpobrotus acinaciformis,100%,1.000,proto_clip,carpobrotus acinaciformis,100%,carpobrotus edulis
+74489_insect_0.42.jpg,species_name,chrysaora hysoscella,58%,0.468,proto_clip,chrysaora hysoscella,58%,pelagia noctiluca
+74594_1_snail_0.48.jpg,famille,Littorinidae,99%,0.227,mlp,littorina littorea,31%,yungia aurantiaca
+74625_fish_0.26.jpg,famille,Pelagiidae,99%,0.142,mlp,pegea confoederata,22%,chrysaora hysoscella
+74757_Oursin_violet_470_algae_0.55.jpg,species_name,paracentrotus lividus,100%,0.999,proto_clip,paracentrotus lividus,100%,arbacia lixula
+74757_Oursin_violet_470_flower algae_0.17.jpg,regne,Animalia,100%,0.068,mlp,serranus hepatus,13%,neverita josephinia
+75188_Vélelle_501_fish_0.55.jpg,famille,Porpitidae,99%,0.022,mlp,acetabularia acetabulum,10%,mola mola
+75285_snail mollusk_0.37.jpg,famille,Littorinidae,87%,0.026,mlp,crepidula fornicata,6%,littorina compressa
+75285_snail_0.16.jpg,species_name,pleurobrachia pileus,61%,0.509,proto_clip,pleurobrachia pileus,61%,mnemiopsis leidyi
+75350_2_plant flower_0.36.jpg,species_name,rugulopteryx okamurae,100%,1.000,proto_clip,rugulopteryx okamurae,100%,fucus serratus
+75350_2_plant_0.17.jpg,ordre,Neogastropoda,53%,0.402,mlp,clavelina lepadiformis,49%,dasyatis pastinaca
+75782_1_animal fish snail_0.36.jpg,species_name,ocenebra erinaceus,100%,1.000,proto_clip,ocenebra erinaceus,100%,ocinebrellus inornatus
+75942_plant flower_0.36.jpg,species_name,peyssonnelia squamaria,100%,0.999,proto_clip,peyssonnelia squamaria,100%,watersipora subatra
+75944_plant flower_0.37.jpg,species_name,sphaerococcus coronopifolius,100%,0.999,proto_clip,sphaerococcus coronopifolius,100%,rugulopteryx okamurae
+75997_plant_0.48.jpg,classe,Ulvophyceae,64%,0.079,mlp,rugulopteryx okamurae,20%,flabellia petiolata
+77100_flower_0.48.jpg,regne,Animalia,100%,0.171,mlp,crithmum maritimum,22%,mytilus edulis
+77720_plant_0.18.jpg,famille,Porpitidae,62%,0.041,mlp,padina pavonica,21%,echinaster (echinaster) sepositus
+77720_starfish_0.83.jpg,species_name,echinaster (echinaster) sepositus,100%,1.000,proto_clip,echinaster (echinaster) sepositus,100%,luidia ciliaris
+77773_fish_0.78.jpg,species_name,diplodus sargus,100%,1.000,proto_clip,diplodus sargus,100%,diplodus puntazzo
+77773_plant_0.20.jpg,species_name,diplodus sargus,100%,0.992,proto_clip,diplodus sargus,100%,diplodus puntazzo
+78867_Lis_de_mer_665_flower_0.54.jpg,species_name,pancratium maritimum,96%,0.955,proto_clip,pancratium maritimum,96%,zeus faber
+78867_Lis_de_mer_665_mammal_0.16.jpg,classe,Hydrozoa,53%,0.082,mlp,sterna hirundo,14%,alcedo atthis
+78871_2_flower_0.54.jpg,species_name,pancratium maritimum,96%,0.955,proto_clip,pancratium maritimum,96%,zeus faber
+78871_2_mammal_0.16.jpg,classe,Hydrozoa,53%,0.082,mlp,sterna hirundo,14%,alcedo atthis
+78931_1_flower_0.29.jpg,species_name,parazoanthus axinellae,96%,0.951,proto_clip,parazoanthus axinellae,96%,thylacodes arenarius
+78931_1_marine plant_0.37.jpg,species_name,parazoanthus axinellae,100%,1.000,proto_clip,parazoanthus axinellae,100%,tethya citrina
+79132_Queue_de_lièvre_693_flower_0.54.jpg,famille,Trochidae,66%,0.104,mlp,pallenis maritima,30%,lagurus ovatus
+79132_Queue_de_lièvre_693_tree_0.49.jpg,species_name,lagurus ovatus,71%,0.683,proto_clip,lagurus ovatus,71%,symsagittifera roscoffensis
+79254_5_animal fish_0.41.jpg,species_name,sepia officinalis,100%,0.995,proto_clip,sepia officinalis,100%,tethya citrina
+79401_Olive_de_Posidonie_714_animal plant flower_0.42.jpg,famille,Posidoniaceae,90%,0.004,mlp,posidonia oceanica,6%,delphinus delphis
+79877_1_flower_0.24.jpg,species_name,caulerpa cylindracea,99%,0.993,proto_clip,caulerpa cylindracea,99%,serranus hepatus
+79877_1_insect_0.16.jpg,phylum,Arthropoda,53%,0.042,mlp,gaidropsarus vulgaris,9%,luidia ciliaris
+79877_1_plant_0.18.jpg,species_name,caulerpa cylindracea,100%,1.000,proto_clip,caulerpa cylindracea,100%,pegea confoederata
+80525_plant_0.23.jpg,phylum,Cnidaria,54%,0.165,mlp,delphinus delphis,22%,scyliorhinus stellaris
+80752_1_animal fish snail mussel_0.36.jpg,species_name,acanthocardia tuberculata,100%,0.997,proto_clip,acanthocardia tuberculata,100%,cerastoderma edule
+80752_1_plant_0.19.jpg,classe,Hydrozoa,86%,0.029,mlp,eunicella singularis,9%,amphipholis squamata
+81282_Nérophis_lombric_783_mussel_0.29.jpg,species_name,nerophis lumbriciformis,93%,0.855,proto_clip,nerophis lumbriciformis,93%,nerophis ophidion
+81771_Béret_basque_820_marine plant_0.27.jpg,species_name,codium bursa,99%,0.992,proto_clip,codium bursa,99%,barbatia barbata
+81832_flower_0.18.jpg,ordre,Neogastropoda,50%,0.029,mlp,halocynthia papillosa,12%,apogon imberbis
+81832_mushroom_0.17.jpg,regne,Animalia,100%,0.012,mlp,doris pseudoargus,13%,gaidropsarus vulgaris
+81832_plant flower_0.36.jpg,species_name,peyssonnelia squamaria,99%,0.980,proto_clip,peyssonnelia squamaria,99%,watersipora subatra
+82055_2_flower_0.51.jpg,species_name,sphaerococcus coronopifolius,100%,1.000,proto_clip,sphaerococcus coronopifolius,100%,asparagopsis armata
+82243_plant_0.45.jpg,regne,Animalia,89%,0.086,mlp,flabellia petiolata,17%,callinectes sapidus
+82287_2_snail mollusk_0.29.jpg,species_name,crepidula fornicata,100%,1.000,proto_clip,crepidula fornicata,100%,phoenicopterus roseus
+82537_insect_0.50.jpg,species_name,rugulopteryx okamurae,98%,0.971,proto_clip,rugulopteryx okamurae,98%,sphaerococcus coronopifolius
+82721_Crabe_vert_888_crab_0.75.jpg,species_name,carcinus maenas,100%,1.000,proto_clip,carcinus maenas,100%,carcinus aestuarii
+82766_Nérophis_lombric_897_reptile_0.47.jpg,species_name,nerophis ophidion,83%,0.651,proto_clip,nerophis ophidion,83%,nerophis lumbriciformis
+82838_crab_0.78.jpg,species_name,carcinus maenas,98%,0.966,proto_clip,carcinus maenas,98%,carcinus aestuarii
+83197_14_bird_0.53.jpg,classe,Bivalvia,58%,0.059,mlp,alcedo atthis,21%,gaidropsarus vulgaris
+84226_plant flower_0.34.jpg,species_name,rugulopteryx okamurae,99%,0.983,proto_clip,rugulopteryx okamurae,99%,fucus serratus
+84867_algae_0.16.jpg,species_name,dictyota fasciola,71%,0.636,proto_clip,dictyota fasciola,71%,parablennius incognitus
+84867_plant brown algae_0.19.jpg,species_name,sphaerococcus coronopifolius,65%,0.426,proto_clip,sphaerococcus coronopifolius,65%,parablennius incognitus
+84867_plant_0.20.jpg,species_name,caulerpa cylindracea,100%,1.000,proto_clip,caulerpa cylindracea,100%,euphorbia paralias
+85342_Datte_de_mer_985_white oval bone_0.41.jpg,species_name,lithophaga lithophaga,94%,0.929,proto_clip,lithophaga lithophaga,94%,palaemon elegans
+85342_Udotée_987_mushroom_0.30.jpg,famille,Porpitidae,54%,0.137,mlp,scyliorhinus stellaris,25%,physalia physalis
+85342_Udotée_987_plant_0.47.jpg,species_name,flabellia petiolata,100%,1.000,proto_clip,flabellia petiolata,100%,codium fragile subsp. fragile
+85914_2_plant_0.37.jpg,regne,Animalia,56%,0.003,mlp,sphaerococcus coronopifolius,5%,symsagittifera roscoffensis
+86149_1_fish_0.82.jpg,species_name,seriola rivoliana,100%,1.000,proto_clip,seriola rivoliana,100%,parablennius pilicornis
+87172_2_flower_0.59.jpg,species_name,carpobrotus acinaciformis,99%,0.986,proto_clip,carpobrotus acinaciformis,99%,buccinum undatum
+87172_2_plant flower_0.38.jpg,species_name,carpobrotus acinaciformis,100%,1.000,proto_clip,carpobrotus acinaciformis,100%,carpobrotus edulis
+87172_2_plant_0.36.jpg,species_name,carpobrotus acinaciformis,100%,1.000,proto_clip,carpobrotus acinaciformis,100%,carpobrotus edulis
+87320_plant algae_0.25.jpg,famille,Posidoniaceae,99%,0.157,mlp,symsagittifera roscoffensis,22%,posidonia oceanica
+87320_plant_0.38.jpg,species_name,zostera marina,74%,0.692,proto_clip,zostera marina,74%,posidonia oceanica
+87357_Voleuse_d'huîtres_1084_animal snail mushroom_0.41.jpg,phylum,Mollusca,70%,0.315,mlp,codium bursa,41%,himanthalia elongata
+87357_Voleuse_d'huîtres_1084_brown algae_0.32.jpg,famille,Scytosiphonaceae,99%,0.132,mlp,colpomenia peregrina,25%,codium bursa
+87411_1_insect_0.36.jpg,species_name,patella caerulea,98%,0.970,proto_clip,patella caerulea,98%,patella vulgata
+87438_Porcellane_grise_1097_insect_0.64.jpg,species_name,porcellana platycheles,100%,1.000,proto_clip,porcellana platycheles,100%,pisidia longicornis
+87453_3_animal snail_0.38.jpg,species_name,amphipholis squamata,72%,0.610,proto_clip,amphipholis squamata,72%,ciona intestinalis
+87453_3_brown algae_0.24.jpg,famille,Littorinidae,75%,0.070,mlp,aporrhais pespelecani,11%,elysia viridis
+87453_3_insect_0.17.jpg,phylum,Chordata,58%,0.063,mlp,doris pseudoargus,14%,alcedo atthis
+87453_3_mammal_0.21.jpg,famille,Trochidae,54%,0.154,mlp,elysia viridis,25%,amphipholis squamata
+87662_2_animal snail mollusk_0.23.jpg,famille,Trochidae,96%,0.010,mlp,sterna hirundo,8%,delphinus delphis
+87727_Monodonte_1142_mollusk_0.44.jpg,famille,Trochidae,97%,0.034,mlp,parablennius incognitus,14%,tethya citrina
+88051_Ponte_de_nasse_réticulée_1145_fish flower_0.20.jpg,regne,Animalia,100%,0.012,mlp,ardea alba,9%,serranus hepatus
+88051_Ponte_de_nasse_réticulée_1145_fish_0.48.jpg,regne,Animalia,100%,0.206,mlp,lutraria lutraria,26%,luidia ciliaris
+88051_Ponte_de_nasse_réticulée_1145_flower_0.39.jpg,classe,Cephalopoda,56%,0.000,mlp,clavelina lepadiformis,9%,homarus gammarus
+88051_Ponte_de_nasse_réticulée_1145_plant tree_0.18.jpg,phylum,Mollusca,59%,0.001,mlp,sargassum muticum,7%,crithmum maritimum
+88407_10_insect_0.25.jpg,phylum,Mollusca,84%,0.025,mlp,ensis magnus,13%,nerophis lumbriciformis
+88559_Vélelle_1186_white oval bone_0.21.jpg,regne,Animalia,100%,0.128,mlp,sargassum muticum,19%,himanthalia elongata
+89482_Patelle_commune_1259_cuttle white oval bone_0.38.jpg,species_name,patella vulgata,57%,0.223,proto_clip,patella vulgata,57%,patella caerulea
+89482_Patelle_commune_1259_white oval bone_0.37.jpg,famille,Trochidae,57%,0.207,mlp,serranus hepatus,25%,pleurobrachia pileus
+89728_Bigorneau_1292_insect mollusk_0.40.jpg,famille,Littorinidae,99%,0.058,mlp,cerastoderma edule,13%,numenius arquata
+89728_Bigorneau_1292_insect_0.15.jpg,ordre,Fucales,79%,0.002,mlp,alcedo atthis,5%,mnemiopsis leidyi
+89728_Bigorneau_1292_plant_0.16.jpg,famille,Trochidae,57%,0.031,mlp,jania rubens,11%,elysia viridis
+90310_Gibbule_ombiliquée_1362_animal snail_0.53.jpg,famille,Trochidae,88%,0.181,mlp,steromphala umbilicalis,38%,sabella pavonina
+90628_brown algae_0.22.jpg,species_name,parablennius pilicornis,100%,0.997,proto_clip,parablennius pilicornis,100%,uranoscopus scaber
+90628_fish_0.71.jpg,species_name,parablennius pilicornis,100%,1.000,proto_clip,parablennius pilicornis,100%,zeus faber
+90628_plant brown algae_0.37.jpg,species_name,parablennius pilicornis,100%,0.998,proto_clip,parablennius pilicornis,100%,muraena helena
+91954_Anatife_commun_1464_white oval bone_0.43.jpg,species_name,lepas (anatifa) anatifera,100%,0.996,proto_clip,lepas (anatifa) anatifera,100%,lutraria lutraria
+91995_Crabe_marbré_1469_crab_0.74.jpg,famille,Sacculinidae,94%,0.154,mlp,sacculina carcini,38%,pachygrapsus marmoratus
+92030_Ver_plat_orange_1480_animal fish_0.46.jpg,species_name,yungia aurantiaca,100%,1.000,proto_clip,yungia aurantiaca,100%,antiopella cristata
+92030_Ver_plat_orange_1480_brown algae_0.29.jpg,species_name,yungia aurantiaca,100%,1.000,proto_clip,yungia aurantiaca,100%,watersipora subatra
+92030_Ver_plat_orange_1480_plant_0.24.jpg,species_name,yungia aurantiaca,100%,1.000,proto_clip,yungia aurantiaca,100%,hermaea variopicta
+92289_Sargasse_japonaise_1487_plant tree sea_0.38.jpg,species_name,sargassum muticum,100%,1.000,proto_clip,sargassum muticum,100%,sphaerococcus coronopifolius
+92289_Sargasse_japonaise_1487_plant tree_0.21.jpg,regne,Animalia,67%,0.020,mlp,sargassum muticum,9%,ascophyllum nodosum
+92289_Sargasse_japonaise_1487_plant_0.17.jpg,classe,Hydrozoa,81%,0.006,mlp,cymbulia peronii,6%,atriplex halimus
+93257_Sterne_pierregarin_1539_bird_0.73.jpg,species_name,sterna hirundo,100%,1.000,proto_clip,sterna hirundo,100%,delphinus delphis
+93361_Puffin_de_Yelkouan_1559_bird_0.63.jpg,species_name,puffinus yelkouan,87%,0.850,proto_clip,puffinus yelkouan,87%,lophius piscatorius
+94064_Crabe_de_pierre_1599_animal crab_0.34.jpg,species_name,xantho hydrophilus,98%,0.979,proto_clip,xantho hydrophilus,98%,sacculina carcini
+94064_Crabe_de_pierre_1599_crab_0.63.jpg,species_name,xantho hydrophilus,100%,1.000,proto_clip,xantho hydrophilus,100%,eriphia verrucosa
+94064_Crabe_de_pierre_1599_plant_0.28.jpg,phylum,Cnidaria,75%,0.127,mlp,parablennius incognitus,17%,styela clava
+94179_Crabe_verruqueux_1616_crab_0.79.jpg,species_name,eriphia verrucosa,100%,0.998,proto_clip,eriphia verrucosa,100%,xantho hydrophilus
+96188_Huître_creuse_1715_white oval bone_0.50.jpg,species_name,ostrea edulis,87%,0.855,proto_clip,ostrea edulis,87%,pleurobrachia pileus
+96544_Grande_claveline_1730_brown algae_0.16.jpg,species_name,clavelina lepadiformis,100%,1.000,proto_clip,clavelina lepadiformis,100%,ciona intestinalis
+96544_Grande_claveline_1730_white oval bone_0.19.jpg,classe,Actinopterygii,69%,0.017,mlp,amphipholis squamata,16%,alcedo atthis
+96544_Grande_claveline_1730_white oval_0.17.jpg,classe,Actinopterygii,54%,0.009,mlp,pleurobrachia pileus,8%,clavelina lepadiformis
+96549_brown algae_0.26.jpg,species_name,bifurcaria bifurcata,100%,1.000,proto_clip,bifurcaria bifurcata,100%,himanthalia elongata
+96549_fish_0.36.jpg,ordre,Anthoathecata,56%,0.020,mlp,symsagittifera roscoffensis,8%,halimione portulacoides
+96960_flower_0.49.jpg,species_name,crithmum maritimum,100%,1.000,proto_clip,crithmum maritimum,100%,euphorbia paralias
+96960_plant_0.44.jpg,species_name,crithmum maritimum,100%,1.000,proto_clip,crithmum maritimum,100%,halimione portulacoides
