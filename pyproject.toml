@@ -37,6 +37,7 @@ dependencies = [
     "structlog>=25.5.0",
     "tqdm>=4.67.3",
     "transformers>=5.2.0",
+    "label-studio-sdk>=2.0.19"
 ]
 
 [tool.pytest.ini_options]
