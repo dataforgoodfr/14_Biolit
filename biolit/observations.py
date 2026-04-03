@@ -22,7 +22,7 @@ def format_observations():
     fn = DATADIR / "export_biolit.csv"
     taxref = pl.read_parquet(DATADIR / "taxref.parquet")
     biolit = (
-        pl.read_csv(fn)
+        pl.read_csv(fn, separator=";", truncate_ragged_lines=True)
         .rename(lambda c: c.replace(" - observation", "").lower().replace(" ", "_"))
         .with_columns(
             col("nom_scientifique").str.to_lowercase(),

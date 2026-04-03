@@ -63,7 +63,8 @@ cover/
 local_settings.py
 db.sqlite3
 db.sqlite3-journal
-
+# autres
+test.py
 # Flask stuff:
 instance/
 .webassets-cache
@@ -171,3 +172,7 @@ labels/
 failed_downloads.csv
 metadata.csv
 data.yaml
+
+# orchestrateur - tests Timothée
+orchestrateur/
+flows/

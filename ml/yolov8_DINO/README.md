@@ -16,7 +16,7 @@ Pipeline de constitution du dataset Biolit pour inférence YOLO / Grounding DINO
     ├── images/
     │   ├── identifiable/
     │   └── non_identifiable/ # à valider
-    ├── labels/    
+    ├── labels/
     │   ├── identifiable/
     │   └── non_identifiable/ # à valider
     ├── metadata.csv # GroundingDINO
