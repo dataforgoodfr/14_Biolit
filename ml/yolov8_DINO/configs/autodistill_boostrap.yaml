@@ -1,0 +1,26 @@
+# Ontologie (TODO: affiner avec Giulia)
+ontology:
+  "plant": "plant"
+  "animal": "animal"
+
+# Chemins
+img_path: dataset_biolit/images
+labeled_output: dataset_biolit/labeled-images
+data_yaml: dataset_biolit/labeled-images/data.yaml
+
+# Modèle
+model: yolov8s.pt # en test utiliser n au lieu de s
+
+# Hyperparams
+epochs: 100
+imgsz: 640
+batch: 16
+device: 0
+
+# Robustesse au bruit
+label_smoothing: 0.1
+dropout: 0.1
+
+# Sorties
+project: runs/
+name: biolit_v2_bootstrap

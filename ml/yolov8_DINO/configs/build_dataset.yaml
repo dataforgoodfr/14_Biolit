@@ -1,0 +1,17 @@
+# Chemins
+data_path: dataset_biolit/export_biolit.csv
+base_dir: dataset_biolit
+images_dir: dataset_biolit/images
+
+# Téléchargement
+timeout: 10
+max_workers: 16
+valid_extensions: ["jpg", "jpeg", "png", "webp"]
+
+# Colonnes CSV
+columns:
+  id: "ID - N1"
+  images: "images - observation"
+  nom_commun: "Nom commun - observation"
+  validee: "validee - observation"
+  espece_identifiable: "espece identifiable ? - observation"
