@@ -18,6 +18,51 @@ def get_engine():
 
     return create_engine(postgres_url)
 
+# -------------------------
+# Création de la table (si besoin)
+# -------------------------
+def create_table():
+    engine = get_engine()
+
+    with engine.begin() as conn:
+        conn.execute(text("""
+            CREATE TABLE IF NOT EXISTS observations (
+                id_observation BIGINT PRIMARY KEY,
+                date_observation TIMESTAMP,
+                lien_observation TEXT,
+                observateur TEXT,
+                url_sortie TEXT,
+                espece_identifiee TEXT,
+                heure_debut TIME,
+                heure_fin TIME,
+                latitude DOUBLE PRECISION,
+                longitude DOUBLE PRECISION,
+                photos TEXT,
+                relais BIGINT,
+                id_espece BIGINT,
+                nom_scientifique TEXT,
+                nom_commun TEXT,
+                categorie_programme BIGINT,
+                programme TEXT
+            );
+        """))
+
+def create_enriched_table(engine):
+    with engine.begin() as conn:
+        conn.execute(text("""
+            CREATE TABLE IF NOT EXISTS observations_enriched (
+                id_observation BIGINT PRIMARY KEY,
+                nearest_commune TEXT,
+                code_insee TEXT,
+                distance_commune_m DOUBLE PRECISION,
+                code_postal TEXT,
+                reg_nom TEXT,
+                dep_nom TEXT,
+                distance_to_coast DOUBLE PRECISION,
+                is_coastal BOOLEAN
+            );
+        """))
+
 
 # -------------------------
 # Préparation des données

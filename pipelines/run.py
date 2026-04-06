@@ -3,7 +3,9 @@ from biolit.postgres import (
     prepare_dataframe_for_postgres,
     insert_dataframe,
     get_engine,
-    insert_enriched_dataframe
+    insert_enriched_dataframe,
+    create_table,
+    create_enriched_table,
 )
 from biolit.geoloc import geoloc_enrichie_data_biolit_db
 
@@ -21,6 +23,9 @@ def run_pipeline():
     print("Preparing for Postgres...")
     df = prepare_dataframe_for_postgres(df)
 
+    print("Creating table if not exists...")
+    create_table()
+
     print("Loading into Postgres...")
     insert_dataframe(df)
 
@@ -31,6 +36,9 @@ def run_pipeline():
     engine = get_engine()
 
     df_geo = geoloc_enrichie_data_biolit_db(engine)
+
+    print("Creating enriched table if not exists...")
+    create_enriched_table(engine)
 
     print("Saving enriched data into Postgres...")
     insert_enriched_dataframe(df_geo, engine)
