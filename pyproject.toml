@@ -16,6 +16,7 @@ dependencies = [
     "pyarrow",
     "python-dotenv",
     "structlog",
+    "pre-commit>=4.5.1",
     "matplotlib",
     "folium"
 ]
