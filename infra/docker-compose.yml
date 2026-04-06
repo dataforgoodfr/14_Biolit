@@ -1,4 +1,29 @@
+
 services:
+  postgres:
+    image: postgres:15
+    container_name: biolit-postgres
+    restart: always
+    environment:
+      POSTGRES_USER: biolit
+      POSTGRES_PASSWORD: biolit
+      POSTGRES_DB: biolit
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+
+  pipeline:
+    build:
+      context: ..
+      dockerfile: infra/Dockerfile
+    container_name: biolit-pipeline
+    depends_on:
+      - postgres
+    environment:
+      POSTGRES_URL: postgresql://biolit:biolit@postgres:5432/biolit
+    command: ["uv", "run", "pipelines/run.py"]
+
   label-studio:
     image: heartexlabs/label-studio:1.13.1
     container_name: biolit-label-studio
@@ -13,3 +38,6 @@ services:
     volumes:
       - ../data/label-studio:/label-studio/data
       - ../data/label-studio/files:/label-studio/files:ro
+
+volumes:
+  postgres_data:
