@@ -14,5 +14,3 @@ COPY . .
 ENV PYTHONPATH=/app
 
 RUN uv sync
-
-CMD ["uv", "run", "python", "-m", "pipelines.run"]

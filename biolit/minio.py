@@ -1,35 +1,16 @@
 import requests
-import pandas as pd
+import polars as pl
 import structlog
 import os
 from dotenv import load_dotenv
 from minio import Minio
 from io import BytesIO
-from sqlalchemy import create_engine
-
+import json
 
 LOGGER = structlog.get_logger()
 load_dotenv()
 
-
-def get_biolit_df_from_db():
-    try:
-        engine = create_engine(os.environ["POSTGRES_URL"])
-
-        query = "SELECT id_observation, photos FROM observations_biolit_api LIMIT 10"
-        df = pd.read_sql(query, engine)
-
-        LOGGER.info("biolit df uploaded", count=len(df))
-        LOGGER.info("Colonnes df", values=list(df.columns))
-
-        return df
-
-    except Exception as e:
-        LOGGER.error("Erreur lors de la récupération des données depuis PostgreSQL", error=str(e))
-        return None
-
-
-def _upload_photos_minio(df: pd.DataFrame):
+def _upload_photos_minio(df: pl.DataFrame):
     access_key = os.getenv("MINIO_ROOT_USER")
     secret_key = os.getenv("MINIO_ROOT_PASSWORD")
 
@@ -44,26 +25,109 @@ def _upload_photos_minio(df: pd.DataFrame):
 
     bucket_name = "crops-data"
 
-    for idx, row in df.iterrows():
-        id_obs = row["id_observation"]
-        url = row["photos"]
+    if not client.bucket_exists(bucket_name):
+        client.make_bucket(bucket_name)
+        LOGGER.info(f"Bucket created: {bucket_name}")
+    else:
+        LOGGER.info(f"Bucket already exists: {bucket_name}")
 
-        filename = url.split("/")[-1]
-        object_name = f"{id_obs}/{filename}"
+    for row in df.to_dicts():
+            id_obs = row["id_observation"]
+            url = row["photos"]
 
-        response = requests.get(url)
+            filename = url.split("/")[-1]
+            object_name = f"{id_obs}/{filename}"
 
-        if response.status_code == 200:
-            data = BytesIO(response.content)
+            try:
+                client.stat_object(bucket_name, object_name)
+                LOGGER.info(f"Skipped (already exists): {object_name}")
+                continue
+            except Exception:
+                pass
 
-            client.put_object(
-                bucket_name,
-                object_name,
-                data,
-                length=len(response.content),
-                content_type="image/jpeg"
-            )
+            response = requests.get(url)
+            if response.status_code == 200:
+                data = BytesIO(response.content)
+                client.put_object(
+                    bucket_name,
+                    object_name,
+                    data,
+                    length=len(response.content),
+                    content_type="image/jpeg"
+                )
+                LOGGER.info(f"Uploaded: {object_name}")
+            else:
+                LOGGER.warning(f"Failed to fetch: {url}")
 
-            LOGGER.info(f"Uploaded: {object_name}")
-        else:
-            LOGGER.info(f"Failed: {url}")
+def _get_label_studios_info_minio():
+    access_key = os.getenv("MINIO_ROOT_USER")
+    secret_key = os.getenv("MINIO_ROOT_PASSWORD")
+
+    # Config MinIO
+    client = Minio(
+        "minio:9000",
+        access_key=access_key,
+        secret_key=secret_key,
+        secure=False
+    )
+    LOGGER.info("Connected to S3")
+
+    bucket_name = "label-data"
+
+    if not client.bucket_exists(bucket_name):
+        client.make_bucket(bucket_name)
+        LOGGER.info(f"Bucket created: {bucket_name}")
+    else:
+        LOGGER.info(f"Bucket already exists: {bucket_name}")
+
+    objects = client.list_objects(bucket_name, recursive=True)
+    all_annotations = []
+
+    for obj in objects:
+        LOGGER.info(f"Reading object: {obj.object_name}")
+
+        response = client.get_object(bucket_name, obj.object_name)
+
+        try:
+            content = response.read().decode("utf-8")
+            data = json.loads(content)
+
+            all_annotations.append(data)
+
+            LOGGER.info(f"Loaded OK: {obj.object_name}")
+        except Exception as e:
+            LOGGER.warning(f"Not JSON or failed: {obj.object_name} - {e}")
+
+        finally:
+            response.close()
+            response.release_conn()
+
+    return all_annotations
+
+
+def annotations_to_polars(all_annotations):
+    rows = []
+
+    for ann in all_annotations:
+        annotation_id = ann.get("id")
+
+        task = ann.get("task", {})
+        task_id = task.get("id")
+        image = task.get("data", {}).get("image")
+
+        for res in ann.get("result", []):
+            value = res.get("value", {})
+
+            row = {
+                "task_id": task_id,
+                "annotation_id": annotation_id,
+                "type": res.get("type"),
+                "from_name": res.get("from_name"),
+                "label": value.get("choices"),
+                "image": image,
+            }
+
+            rows.append(row)
+    df = pl.DataFrame(rows)
+    LOGGER.info(df)
+    return df

@@ -88,7 +88,9 @@ La pipeline crée plusieurs fichier:
 ## Label Studio (annotation)
 
 ```bash
-docker compose --env-file .env -f infra/docker-compose.yml up
+docker compose --env-file .env -f infra/docker-compose.yml up -d
+docker build -t biolit-pipeline .
+docker run --rm   --network biolit_network   --env-file .env   biolit-pipeline   uv run python -m pipelines.run
 ```
 
 UI : http://localhost:8080

@@ -13,7 +13,7 @@ CREATE TABLE IF NOT EXISTS ml_crops (
     espece TEXT
 );
 
-CREATE TABLE IF NOT EXISTS observations_biolit_api (
+CREATE TABLE IF NOT EXISTS observations (
     id_observation INT PRIMARY KEY,
     date_observation TIMESTAMP,
     lien_observation TEXT,
@@ -31,6 +31,5 @@ CREATE TABLE IF NOT EXISTS observations_biolit_api (
     nom_commun TEXT,
     categorie_programme INT,
     programme TEXT,
-    validee TEXT,
     created_at TIMESTAMP DEFAULT NOW()
 );

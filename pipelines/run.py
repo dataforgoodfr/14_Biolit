@@ -6,12 +6,12 @@ from biolit.postgres import (
     insert_enriched_dataframe,
     create_table,
     create_enriched_table,
+    load_observations_from_db_for_S3,
 )
 from biolit.geoloc import geoloc_enrichie_data_biolit_db
+from biolit.minio import _upload_photos_minio
 import structlog
 from dotenv import load_dotenv
-load_dotenv()
-
 
 LOGGER = structlog.get_logger()
 load_dotenv()
@@ -54,7 +54,18 @@ def run_pipeline():
     # -------------------------
     # 3. INSERTION DES IMAGES DANS MINIO
     # -------------------------
+    LOGGER.info("Connection to minio...")
+    df_minio = load_observations_from_db_for_S3(engine)
+    _upload_photos_minio(df_minio)
+    LOGGER.info("DONE ✅")
 
+    # -------------------------
+    # 4. ENVOIE DES CROPS A LABEL STUDIO
+    # -------------------------
+
+    # -------------------------
+    # 5. RECUPERATION DES INFOS DEPUIS LABEL STUDIO
+    # -------------------------
 
 if __name__ == "__main__":
     run_pipeline()

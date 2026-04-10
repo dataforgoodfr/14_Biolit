@@ -202,19 +202,18 @@ def insert_enriched_dataframe(df: pd.DataFrame, engine):
                 ON CONFLICT (id_observation) DO NOTHING
             """), row)
 
-
-
-
-
-
-
-
-
-
 def load_observations_from_db(engine) -> pl.DataFrame:
     query = """
         SELECT *
         FROM observations
     """
 
+    return pl.read_database(query, engine)
+
+def load_observations_from_db_for_S3(engine) -> pl.DataFrame:
+    query = """
+        SELECT id_observation, photos, latitude, longitude
+        FROM observations
+        LIMIT 10
+    """
     return pl.read_database(query, engine)
