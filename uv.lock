@@ -35,6 +35,7 @@ dependencies = [
     { name = "folium" },
     { name = "geopandas" },
     { name = "geopy" },
+    { name = "huggingface-hub" },
     { name = "ipykernel" },
     { name = "ipython" },
     { name = "ipython-sql" },
@@ -64,6 +65,7 @@ dependencies = [
     { name = "torch" },
     { name = "tqdm" },
     { name = "transformers" },
+    { name = "ultralytics" },
 ]
 
 [package.metadata]
@@ -79,6 +81,7 @@ requires-dist = [
     { name = "folium", specifier = ">=0.20.0" },
     { name = "geopandas", specifier = ">=1.1.2" },
     { name = "geopy", specifier = ">=2.4.1" },
+    { name = "huggingface-hub", specifier = ">=0.36.2" },
     { name = "ipykernel", specifier = ">=6.29.5" },
     { name = "ipython", specifier = ">=8.31.0" },
     { name = "ipython-sql", specifier = ">=0.5.0" },
@@ -108,6 +111,7 @@ requires-dist = [
     { name = "torch", specifier = ">=2.11.0" },
     { name = "tqdm", specifier = ">=4.67.3" },
     { name = "transformers", specifier = "==4.41.2" },
+    { name = "ultralytics", specifier = ">=8.0.81" },
 ]
 
 [[package]]

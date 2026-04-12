@@ -36,8 +36,8 @@ uv run predict.py --source ./images/ # TODO: cf. dataeng pour cadrer ceci
 ```yaml
 # config.yaml
 model:
-  source: "huggingface"                          # huggingface | local
-  repo_id: "mandresyandri/yolov8_biolit_crop"
+  source: "huggingface"                          # huggingface (dataforgood) | local
+  repo_id: "DataForGood/yolov8_biolit_crop"
   filename: "runs/biolit_v2_yolo_finetuned/best.pt"
 
 inference:

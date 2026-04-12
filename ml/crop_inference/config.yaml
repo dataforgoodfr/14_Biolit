@@ -1,7 +1,7 @@
 model:
   source: "huggingface"
-  repo_id: "mandresyandri/yolov8_biolit_crop" #TODO: mettre sur le huggingFace dataforgood
-  filename: "runs/biolit_v2_yolo_finetuned/best.pt" #TODO: mettre sur le huggingFace dataforgood
+  repo_id: "DataForGood/yolov8_biolit_crop" 
+  filename: "runs/biolit_v2_yolo_finetuned/best.pt" 
 
 inference:
   conf: 0.4
