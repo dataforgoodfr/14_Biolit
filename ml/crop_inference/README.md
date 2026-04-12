@@ -80,7 +80,7 @@ outputs/run_YYYYMMDD_HHMMSS/
 
 ## Modèle
 
-- **Source :** [mandresyandri/yolov8_biolit_crop](https://huggingface.co/mandresyandri/yolov8_biolit_crop) — téléchargé automatiquement via `hf_hub_download` et mis en cache localement
+- **Source :** [DataForGood/yolov8_biolit_crop](https://huggingface.co/DataForGood/yolov8_biolit_crop) — téléchargé automatiquement via `hf_hub_download` et mis en cache localement
 - **Architecture :** YOLOv8 finetuné sur images littorales Biolit
 - **Classes :** `{0: plant, 1: animal}`
 
