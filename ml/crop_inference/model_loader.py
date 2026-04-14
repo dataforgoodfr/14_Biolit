@@ -17,7 +17,7 @@ def load_model_weights(cfg: dict) -> str:
     if source == "local":
         path = Path(model_cfg["path"])
         if not path.exists():
-            raise FileExistsError(f"Modèle introuvable : {path}")
+            raise FileNotFoundError(f"Modèle introuvable : {path}")
         return str(path)
     
     # TODO: si besoin ajouter une source modèle sur S3 -> voir dès que le S3 est dispo
