@@ -1,6 +1,9 @@
 import os
 import polars as pl
 from sqlalchemy import create_engine, text
+import pandas as pd
+from dotenv import load_dotenv
+load_dotenv()
 
 
 # -------------------------
@@ -14,6 +17,51 @@ def get_engine():
         raise ValueError("Missing POSTGRES_URL")
 
     return create_engine(postgres_url)
+
+# -------------------------
+# Création de la table (si besoin)
+# -------------------------
+def create_table():
+    engine = get_engine()
+
+    with engine.begin() as conn:
+        conn.execute(text("""
+            CREATE TABLE IF NOT EXISTS observations (
+                id_observation BIGINT PRIMARY KEY,
+                date_observation TIMESTAMP,
+                lien_observation TEXT,
+                observateur TEXT,
+                url_sortie TEXT,
+                espece_identifiee TEXT,
+                heure_debut TIME,
+                heure_fin TIME,
+                latitude DOUBLE PRECISION,
+                longitude DOUBLE PRECISION,
+                photos TEXT,
+                relais BIGINT,
+                id_espece BIGINT,
+                nom_scientifique TEXT,
+                nom_commun TEXT,
+                categorie_programme BIGINT,
+                programme TEXT
+            );
+        """))
+
+def create_enriched_table(engine):
+    with engine.begin() as conn:
+        conn.execute(text("""
+            CREATE TABLE IF NOT EXISTS observations_enriched (
+                id_observation BIGINT PRIMARY KEY,
+                nearest_commune TEXT,
+                code_insee TEXT,
+                distance_commune_m DOUBLE PRECISION,
+                code_postal TEXT,
+                reg_nom TEXT,
+                dep_nom TEXT,
+                distance_to_coast DOUBLE PRECISION,
+                is_coastal BOOLEAN
+            );
+        """))
 
 
 # -------------------------
@@ -122,3 +170,51 @@ def insert_dataframe(df: pl.DataFrame):
                 )
                 ON CONFLICT (id_observation) DO NOTHING
             """), row)
+
+def insert_enriched_dataframe(df: pd.DataFrame, engine):
+    pl_df = pl.from_pandas(df)
+    rows = pl_df.to_dicts()
+
+    with engine.begin() as conn:
+        for row in rows:
+            conn.execute(text("""
+                INSERT INTO observations_enriched (
+                    id_observation,
+                    nearest_commune,
+                    code_insee,
+                    distance_commune_m,
+                    code_postal,
+                    reg_nom,
+                    dep_nom,
+                    distance_to_coast,
+                    is_coastal
+                ) VALUES (
+                    :id_observation,
+                    :nearest_commune,
+                    :code_insee,
+                    :distance_commune_m,
+                    :code_postal,
+                    :reg_nom,
+                    :dep_nom,
+                    :distance_to_coast,
+                    :is_coastal
+                )
+                ON CONFLICT (id_observation) DO NOTHING
+            """), row)
+
+
+
+
+
+
+
+
+
+
+def load_observations_from_db(engine) -> pl.DataFrame:
+    query = """
+        SELECT *
+        FROM observations
+    """
+
+    return pl.read_database(query, engine)
