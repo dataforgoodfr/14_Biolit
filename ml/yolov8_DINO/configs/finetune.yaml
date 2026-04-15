@@ -1,0 +1,13 @@
+model: runs/biolit_v2_bootstrap/weights/best.pt
+data_yaml: ../../data/manual_annotations/data.yaml
+
+epochs: 100
+imgsz: 640
+batch: 16
+
+optimizer: AdamW
+lr0: 0.001
+
+# Sorties
+project: runs/
+name: biolit_v2_finetuned

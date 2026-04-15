@@ -35,7 +35,49 @@ dataset_biolit/
 
 Poids entraînés → `runs/biolit_v2_bootstrap/weights/`
 
-## Partie 2 — Fine-tuning (à venir)
+## Partie 2 — Fine-tuning
 
-Pris en charge par un autre membre de l'équipe.
-Entraînement sur des images cropées et annotées manuellement pour améliorer les performances du modèle bootstrap.
+Cette étape consiste à améliorer le modèle YOLOv8 obtenu lors du bootstrap en utilisant un dataset plus petit (~1,400 images) mais de meilleure qualité, annoté manuellement.
+Le dataset est augmenté artificiellement ×3 sur le train set uniquement (pas sur le validation set) via flips, rotations (±15° et 90°), ajustements de luminosité (±10 %) et léger flou.
+
+### Données
+
+````text
+14_Biolit/
+├── data/
+│   └── manual_annotations/
+│       ├── train/...
+│       ├── valid/...
+│       └── data.yaml
+
+### Modèle de départ
+
+Le fine-tuning part du modèle entraîné lors de la partie 1 :
+
+```text
+runs/biolit_v2_bootstrap/weights/best.pt
+````
+
+### Lancer le fine-tuning
+
+```bash
+python finetune.py
+```
+
+### Configuration
+
+Le fichier `configs/finetune.yaml` contient les paramètres principaux :
+
+- chemin vers le modèle bootstrap (`best.pt`)
+- chemin vers le dataset manuel (`data.yaml`)
+- hyperparamètres d'entraînement (`epochs`, `batch`, `learning rate`)
+
+### Résultat
+
+Les nouveaux poids sont sauvegardés dans :
+
+```text
+runs/biolit_v2_finetuned/weights/
+```
+
+Ce modèle est ensuite utilisé pour générer les crops finaux ou pour l’inférence.
