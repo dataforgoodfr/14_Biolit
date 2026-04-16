@@ -1,0 +1,13 @@
+model:
+  source: "huggingface"
+  repo_id: "DataForGood/yolov8_biolit_crop" 
+  filename: "runs/finetune-yolo-after-dyno-V2/best.pt" # Dernier modèle testé par Hillel
+
+inference:
+  conf: 0.4
+  iou: 0.45
+  imgsz: 640
+  device: "cpu"
+  save: true
+  save_dir: "outputs/"
+
