@@ -205,6 +205,46 @@ def insert_enriched_dataframe(df: pd.DataFrame, engine):
                 ON CONFLICT (id_observation) DO NOTHING
             """), row)
 
+def insert_no_crops_dataframe(df: pl.Dataframe, engine):
+    rows = df.to_dicts()
+
+    with engine.begin() as conn:
+        for row in rows:
+            conn.execute(text("""
+                INSERT INTO ml_no_crops (
+                    run_name,
+                    id_observation,
+                    path_s3
+                ) VALUES (
+                    :run_name,
+                    :id_observation,
+                    :path_s3
+                )
+                ON CONFLICT (id_observation) DO NOTHING
+            """), row)
+
+def insert_crops_dataframe(df: pl.DataFrame, engine):
+    rows = df.to_dicts()
+
+    with engine.begin() as conn:
+        for row in rows:
+            conn.execute(text("""
+                INSERT INTO ml_crops (
+                    run_name,
+                    id_crops,
+                    regne,
+                    confiance,
+                    path_s3
+                ) VALUES (
+                    :run_name,
+                    :id_crops,
+                    :regne,
+                    :confiance,
+                    :path_s3
+                )
+                ON CONFLICT (id_crops) DO NOTHING
+            """), row)
+
 def load_observations_from_db(engine) -> pl.DataFrame:
     query = """
         SELECT *
@@ -213,10 +253,17 @@ def load_observations_from_db(engine) -> pl.DataFrame:
 
     return pl.read_database(query, engine)
 
-def load_observations_from_db_for_S3(engine) -> pl.DataFrame:
+def load_observations_from_db_for_ML(engine) -> pl.DataFrame:
     query = """
         SELECT id_observation, photos, latitude, longitude
         FROM observations
-        LIMIT 10
+        LIMIT 100
+    """
+    return pl.read_database(query, engine)
+
+def load_observations_from_crops_for_Label_Studio(engine) -> pl.DataFrame:
+    query = """
+        SELECT *
+        FROM ml_crops
     """
     return pl.read_database(query, engine)

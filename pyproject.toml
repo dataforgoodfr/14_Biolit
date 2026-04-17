@@ -37,12 +37,12 @@ dependencies = [
     "ultralytics",
     "supervision>=0.27.0.post2",
     "scikit-learn>=1.8.0",
-    "boto3>=1.42.80",
     "python-dotenv>=1.2.2",
     "huggingface-hub>=0.36.2",
     "ultralytics>=8.0.81",
     "minio>=7.2.20",
     "label-studio-sdk>=2.0.13",
+    "boto3>=1.42.89",
 ]
 
 [tool.pytest.ini_options]

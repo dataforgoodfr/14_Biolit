@@ -5,12 +5,13 @@ import os
 from dotenv import load_dotenv
 from minio import Minio
 from io import BytesIO
+from PIL import Image
 import json
 
 LOGGER = structlog.get_logger()
 load_dotenv()
 
-def _upload_photos_minio(df: pl.DataFrame):
+def _upload_photos_minio(df: pl.DataFrame, file_name: str):
     access_key = os.getenv("MINIO_ROOT_USER")
     secret_key = os.getenv("MINIO_ROOT_PASSWORD")
 
@@ -26,8 +27,8 @@ def _upload_photos_minio(df: pl.DataFrame):
     bucket_name = "crops-data"
 
     if not client.bucket_exists(bucket_name):
-        client.make_bucket(bucket_name)
-        LOGGER.info(f"Bucket created: {bucket_name}")
+        LOGGER.info(f"Bucket does not exist: {bucket_name}")
+        return
     else:
         LOGGER.info(f"Bucket already exists: {bucket_name}")
 
@@ -35,8 +36,7 @@ def _upload_photos_minio(df: pl.DataFrame):
             id_obs = row["id_observation"]
             url = row["photos"]
 
-            filename = url.split("/")[-1]
-            object_name = f"{id_obs}/{filename}"
+            object_name = f"{file_name}/{id_obs}"
 
             try:
                 client.stat_object(bucket_name, object_name)
@@ -58,6 +58,35 @@ def _upload_photos_minio(df: pl.DataFrame):
                 LOGGER.info(f"Uploaded: {object_name}")
             else:
                 LOGGER.warning(f"Failed to fetch: {url}")
+
+def create_minio_client():
+    return Minio(
+        "minio:9000",
+        access_key=os.getenv("MINIO_ROOT_USER"),
+        secret_key=os.getenv("MINIO_ROOT_PASSWORD"),
+        secure=False
+    )
+
+def ensure_bucket_exists(client, bucket_name):
+    if not client.bucket_exists(bucket_name):
+        client.make_bucket(bucket_name)
+        LOGGER.info(f"Bucket created: {bucket_name}")
+    else:
+        LOGGER.info(f"Bucket exists: {bucket_name}")
+
+def upload_crop_image(client, pil_img: Image.Image, bucket_name: str, object_name: str):
+    buffer = BytesIO()
+    pil_img.save(buffer, format="JPEG")
+    buffer.seek(0)
+
+    client.put_object(
+        bucket_name=bucket_name,
+        object_name=object_name,
+        data=buffer,
+        length=buffer.getbuffer().nbytes,
+        content_type="image/jpeg"
+    )
+
 
 def _get_label_studios_info_minio():
     access_key = os.getenv("MINIO_ROOT_USER")

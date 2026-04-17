@@ -2,15 +2,10 @@ version = 1
 revision = 3
 requires-python = ">=3.12"
 resolution-markers = [
-    "python_full_version >= '4' and sys_platform == 'win32'",
     "python_full_version >= '3.14' and python_full_version < '4' and sys_platform == 'win32'",
-    "python_full_version >= '4' and sys_platform == 'emscripten'",
     "python_full_version >= '3.14' and python_full_version < '4' and sys_platform == 'emscripten'",
-    "python_full_version >= '4' and sys_platform == 'darwin'",
     "python_full_version >= '3.14' and python_full_version < '4' and sys_platform == 'darwin'",
-    "python_full_version >= '4' and platform_machine == 'aarch64' and sys_platform == 'linux'",
     "python_full_version >= '3.14' and python_full_version < '4' and platform_machine == 'aarch64' and sys_platform == 'linux'",
-    "(python_full_version >= '4' and platform_machine != 'aarch64' and sys_platform == 'linux') or (python_full_version >= '4' and sys_platform != 'darwin' and sys_platform != 'emscripten' and sys_platform != 'linux' and sys_platform != 'win32')",
     "(python_full_version >= '3.14' and python_full_version < '4' and platform_machine != 'aarch64' and sys_platform == 'linux') or (python_full_version >= '3.14' and python_full_version < '4' and sys_platform != 'darwin' and sys_platform != 'emscripten' and sys_platform != 'linux' and sys_platform != 'win32')",
     "python_full_version == '3.13.*' and sys_platform == 'win32'",
     "python_full_version < '3.13' and sys_platform == 'win32'",
@@ -22,6 +17,11 @@ resolution-markers = [
     "python_full_version < '3.13' and sys_platform == 'darwin'",
     "python_full_version < '3.13' and platform_machine == 'aarch64' and sys_platform == 'linux'",
     "(python_full_version < '3.13' and platform_machine != 'aarch64' and sys_platform == 'linux') or (python_full_version < '3.13' and sys_platform != 'darwin' and sys_platform != 'emscripten' and sys_platform != 'linux' and sys_platform != 'win32')",
+    "python_full_version >= '4' and sys_platform == 'win32'",
+    "python_full_version >= '4' and sys_platform == 'emscripten'",
+    "python_full_version >= '4' and sys_platform == 'darwin'",
+    "python_full_version >= '4' and platform_machine == 'aarch64' and sys_platform == 'linux'",
+    "(python_full_version >= '4' and platform_machine != 'aarch64' and sys_platform == 'linux') or (python_full_version >= '4' and sys_platform != 'darwin' and sys_platform != 'emscripten' and sys_platform != 'linux' and sys_platform != 'win32')",
 ]
 
 [[package]]
@@ -64,7 +64,7 @@ requires-dist = [
     { name = "autodistill", specifier = ">=0.1.29" },
     { name = "autodistill-grounding-dino", specifier = ">=0.1.4" },
     { name = "autodistill-yolov8", specifier = ">=0.1.4" },
-    { name = "boto3", specifier = ">=1.42.80" },
+    { name = "boto3", specifier = ">=1.42.89" },
     { name = "geopandas" },
     { name = "huggingface-hub", specifier = ">=0.36.2" },
     { name = "label-studio-sdk", specifier = ">=2.0.13" },
