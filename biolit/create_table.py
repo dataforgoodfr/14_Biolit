@@ -257,7 +257,7 @@ def load_observations_from_db_for_ML(engine) -> pl.DataFrame:
     query = """
         SELECT id_observation, photos, latitude, longitude
         FROM observations
-        LIMIT 100
+        LIMIT 10
     """
     return pl.read_database(query, engine)
 

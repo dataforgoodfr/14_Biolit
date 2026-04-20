@@ -1,8 +1,11 @@
 import boto3
-import os
-from botocore.exceptions import ClientError
 import structlog
+import os
 from dotenv import load_dotenv
+from botocore.exceptions import ClientError
+from io import BytesIO
+from PIL import Image
+
 LOGGER = structlog.get_logger()
 load_dotenv()
 
@@ -30,9 +33,45 @@ def test_permissions(bucket_name):
     except ClientError as e:
         LOGGER.info(f"❌ ListBucket: {e.response['Error']['Code']}")
 
-    # 2. Get bucket ACL
     try:
-        s3.get_bucket_acl(Bucket=bucket_name)
-        LOGGER.info("✅ GetBucketAcl: OK")
+        s3.put_object(Bucket=bucket_name, Key="test.txt", Body=b"hello")
+        LOGGER.info("✅ PutObject (write): OK")
     except ClientError as e:
-        LOGGER.info(f"❌ GetBucketAcl: {e.response['Error']['Code']}")
+        LOGGER.info(f"❌ PutObject: {e.response['Error']['Code']}")
+
+    try:
+        s3.get_object(Bucket=bucket_name, Key="test.txt")
+        LOGGER.info("✅ GetObject: OK")
+    except ClientError as e:
+        LOGGER.info(f"❌ GetObject: {e.response['Error']['Code']}")
+
+    try:
+        s3.delete_object(Bucket=bucket_name, Key="test.txt")
+        LOGGER.info("✅ DeleteObject: OK")
+    except ClientError as e:
+        LOGGER.info(f"❌ DeleteObject: {e.response['Error']['Code']}")
+
+
+def create_s3_client():
+    ACCESS_KEY = os.getenv("aws_access_key_id")
+    SECRET_KEY = os.getenv("aws_secret_access_key")
+    ENDPOINT_URL = os.getenv("aws_url")
+    return boto3.client(
+        "s3",
+        aws_access_key_id=ACCESS_KEY,
+        aws_secret_access_key=SECRET_KEY,
+        endpoint_url=ENDPOINT_URL
+    )
+
+def upload_image_s3(client, pil_img: Image.Image, bucket_name: str, object_name: str):
+    buffer = BytesIO()
+    pil_img.save(buffer, format="JPEG")
+    buffer.seek(0)
+
+    client.put_object(
+        Body=buffer,
+        Bucket=bucket_name,
+        Key=object_name,
+        ContentEncoding="image/jpeg",
+        ContentLength=buffer.getbuffer().nbytes
+    )

@@ -92,11 +92,12 @@ def run_pipeline():
     push_tasks_label_studio_no_crops("Biolit No Crops", df_no_crops)
     LOGGER.info("LABEL STUDIO DONE ✅")
 
-    """
+
 
     # -------------------------
     # 7. ENVOIE DES CROPS A LABEL STUDIO
     # -------------------------
+    """
     LOGGER.info("Connection to Label Studio...")
     push_tasks_label_studio("Biolit Crops", df)
     LOGGER.info("LABEL STUDIO DONE ✅")

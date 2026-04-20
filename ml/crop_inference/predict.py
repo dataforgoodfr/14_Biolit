@@ -14,7 +14,7 @@ from PIL import Image
 from ultralytics import YOLO
 from .model_loader import load_model_weights
 from .utils.logger import setup_logger
-from biolit.minio import create_minio_client, ensure_bucket_exists, upload_crop_image
+from biolit.s3 import create_s3_client, upload_image_s3
 
 import ultralytics.nn.modules as modules
 import sys
@@ -130,7 +130,7 @@ def build_manifest_s3(results: list, run_name: str, client, bucket: str) -> tupl
         if len(r.boxes) == 0:
             object_name = f"{run_name}/no_crops/{source_stem}.jpg"
 
-            upload_crop_image(
+            upload_image_s3(
                 client=client,
                 pil_img=img,
                 bucket_name=bucket,
@@ -159,7 +159,7 @@ def build_manifest_s3(results: list, run_name: str, client, bucket: str) -> tupl
 
             object_name = f"{run_name}/crops/{source_stem}_{cls_name}_{conf:.2f}.jpg"
 
-            upload_crop_image(
+            upload_image_s3(
                 client=client,
                 pil_img=crop,
                 bucket_name=bucket,
@@ -230,8 +230,7 @@ def run_predict(source: str, config_path: str, run_name: str, log_level: str = "
     print_results(model, results)
 
     try:
-        client = create_minio_client()
-        ensure_bucket_exists(client, "biolit-uploads")
+        client = create_s3_client()
 
         df = build_manifest_s3(
             results,

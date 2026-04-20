@@ -48,8 +48,8 @@ def push_tasks_label_studio(project_title: str, df: pl.DataFrame):
     LOGGER.info("The tasks have been successfully imported ; number of tasks :", value=len(df))
 
 def push_tasks_label_studio_no_crops(project_title: str, df: pl.DataFrame):
-    api_key = os.getenv("LABEL_STUDIO_API_KEY")
-    url = "http://label-studio:8080"
+    api_key = os.getenv("LABEL_STUDIO_API_KEY_DATAFORGOOD")
+    url = os.getenv("LABEL_STUDIO_URL")
 
     client = LabelStudio(base_url=url, api_key=api_key)
     projects = client.projects.list()
