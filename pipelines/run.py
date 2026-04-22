@@ -8,6 +8,11 @@ from biolit.create_table import (
     insert_crops_dataframe,
     insert_no_crops_dataframe,
 )
+
+from biolit.flow_gatekeeper import(
+    filter_observations_for_crop,
+    filter_crops_for_classification
+)
 from biolit.label_studio import (
     push_tasks_label_studio_no_crops,
 )
@@ -67,11 +72,21 @@ def run_pipeline():
     # -------------------------
     LOGGER.info("Récupération des données à traiter pour le ML")
     df_ml = load_observations_from_db_for_ML(engine)
-    LOGGER.info("Nombre d'observations à traiter : ", value=len(df_ml))
+    df_ml_to_process = filter_observations_for_crop(df_ml, engine)
+    nb_to_process = len(df_ml_to_process)
+
+    LOGGER.info(
+        "Nombre d'observations à traiter",
+        value=nb_to_process
+    )
+
+    if nb_to_process == 0:
+        LOGGER.info("Aucune nouvelle observation à traiter → arrêt du pipeline ✅")
+        return
 
     LOGGER.info("Lancement du Flow de ML Crop")
     config_name="ml/crop_inference/config.yaml"
-    df_crops, df_no_crops = flow_ml_crops(df_ml, config_name, dossier_inference)
+    df_crops, df_no_crops = flow_ml_crops(df_ml_to_process, config_name, dossier_inference)
     LOGGER.info("Cropping des images réalisées")
     LOGGER.info("Crops uploadés sur S3")
 
@@ -84,13 +99,27 @@ def run_pipeline():
     # -------------------------
     # 5. PASSAGE ML TAXONOMIE
     # -------------------------
+    LOGGER.info("passage à l'identification par le ML2")
+    df_crops_to_classify=filter_crops_for_classification(df_crops,engine)
+    nb_to_classify = len(df_crops_to_classify)
+
+    LOGGER.info(
+        "Nombre d'observations non classifiées",
+        value=nb_to_classify
+    )
+
+    if nb_to_classify == 0:
+        LOGGER.info("Aucun crop à classifier → skip ML taxonomy ✅")
 
     # -------------------------
     # 6. ENVOIE DES IMAGES A LABEL STUDIO
     # -------------------------
     LOGGER.info("Connection to Label Studio...")
-    push_tasks_label_studio_no_crops("Biolit No Crops", df_no_crops)
-    LOGGER.info("LABEL STUDIO DONE ✅")
+    if len(df_no_crops) == 0:
+        LOGGER.info("Aucune image à envoyer à Label Studio → skip ✅")
+    else:
+        push_tasks_label_studio_no_crops("Biolit No Crops", df_no_crops)
+        LOGGER.info("LABEL STUDIO DONE ✅")
 
 
 
