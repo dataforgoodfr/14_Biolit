@@ -10,8 +10,7 @@ from biolit.create_table import (
 )
 
 from biolit.flow_gatekeeper import(
-    filter_observations_for_crop,
-    filter_crops_for_classification
+    filter_observations_for_crop
 )
 from biolit.label_studio import (
     push_tasks_label_studio_no_crops,
@@ -99,17 +98,6 @@ def run_pipeline():
     # -------------------------
     # 5. PASSAGE ML TAXONOMIE
     # -------------------------
-    LOGGER.info("passage à l'identification par le ML2")
-    df_crops_to_classify=filter_crops_for_classification(df_crops,engine)
-    nb_to_classify = len(df_crops_to_classify)
-
-    LOGGER.info(
-        "Nombre d'observations non classifiées",
-        value=nb_to_classify
-    )
-
-    if nb_to_classify == 0:
-        LOGGER.info("Aucun crop à classifier → skip ML taxonomy ✅")
 
     # -------------------------
     # 6. ENVOIE DES IMAGES A LABEL STUDIO
