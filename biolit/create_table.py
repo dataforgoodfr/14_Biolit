@@ -255,9 +255,22 @@ def load_observations_from_db(engine) -> pl.DataFrame:
 
 def load_observations_from_db_for_ML(engine) -> pl.DataFrame:
     query = """
-        SELECT id_observation, photos, latitude, longitude
+        SELECT
+            id_observation,
+            photos,
+            latitude,
+            longitude,
+            relais,
+            nearest_commune,
+            reg_nom,
+            dep_nom,
+            validee
         FROM observations
-        LIMIT 30
+        LEFT JOIN observations_enriched
+        USING (id_observation)
+        WHERE LOWER(validee) = 'false'
+        AND photos LIKE 'https:%'
+        LIMIT 20
     """
     return pl.read_database(query, engine)
 

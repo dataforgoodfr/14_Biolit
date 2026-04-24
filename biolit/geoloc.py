@@ -7,9 +7,6 @@ import requests
 import structlog
 from pathlib import Path
 import zipfile
-import os
-import folium
-from folium.plugins import MarkerCluster
 
 from biolit import DATADIR, DATA_GOUV_INFO_COMMUNES_URL, DATA_GOUV_CONTOUR_COMMUNES_URL, WORLD_COAST_LINES_URL
 from biolit.create_table import load_observations_from_db
@@ -250,41 +247,3 @@ def get_info_distance_to_coast(frame: pd.DataFrame, distance_max: float = 8000) 
 
     LOGGER.info("Biolit Data Points enriched with distance to coast", nb_not_coastal = (~gdf_export["is_coastal"]).sum(), nb_coastal = gdf_export["is_coastal"].sum())
     return gdf_export
-
-def carte_points_biolit_checks_geoloc(file_to_map: Path):
-    """
-    Si besoin de checks - possibilité de créer une carte avec en vert les points proches de la côte et en rouge les points éloignés de la côte
-    """
-    if not os.path.exists(file_to_map):
-        LOGGER.info("The file you want to map does not exist")
-        return
-
-    df = pl.read_parquet(file_to_map)
-    gdf = gpd.GeoDataFrame(df.to_pandas(), geometry=gpd.points_from_xy(df["longitude"], df["latitude"]), crs="EPSG:4326").dropna(subset=["latitude", "longitude"])
-
-    carte = folium.Map(location=[48.95, 2.29], zoom_start=6)
-
-    marker_cluster = MarkerCluster().add_to(carte)
-
-    for _, row in gdf.iterrows():
-        color = "green" if row["is_coastal"] else "red"
-
-        popup_text = (
-            f"ID: {row['id']}<br>"
-            f"Côtier: {row['is_coastal']}<br>"
-            f"Distance : {row['distance_to_coast']} m<br>"
-            f"Code Postal : {row['code_postal']}<br>"
-            f"Departement : {row['dep_nom']} m<br>"
-        )
-
-        folium.CircleMarker(
-            location=[row["latitude"], row["longitude"]],
-            radius=3,
-            color=color,
-            fill=True,
-            fill_color=color,
-            fill_opacity=0.7,
-            popup=popup_text,
-        ).add_to(marker_cluster)
-    carte.save(DATADIR / 'carte_points_biolit.html')
-    LOGGER.info('Map created')

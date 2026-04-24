@@ -51,29 +51,3 @@ CREATE TABLE IF NOT EXISTS observations (
     programme TEXT,
     validee TEXT
 );
-
-CREATE TABLE IF NOT EXISTS enriched_observations_metabase (
-    id_observation INT PRIMARY KEY,
-    date_observation TIMESTAMP,
-    lien_observation TEXT,
-    observateur TEXT,
-    url_sortie TEXT,
-    espece_identifiee TEXT,
-    heure_debut TIME,
-    heure_fin TIME,
-    latitude FLOAT,
-    longitude FLOAT,
-    photos TEXT,
-    relais INT,
-    id_espece INT,
-    nom_scientifique TEXT,
-    nom_commun TEXT,
-    categorie_programme INT,
-    programme TEXT,
-    validee TEXT,
-    reg_nom TEXT,
-    dep_nom TEXT,
-    nom_commune TEXT,
-    code_postal BIGINT,
-    code_insee BIGINT
-);

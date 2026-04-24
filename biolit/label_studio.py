@@ -71,15 +71,15 @@ def push_tasks_label_studio_no_crops(project_title: str, df: pl.DataFrame):
 
         tasks.append({
             "data": {
-                "image": {row["path_s3"]},
+                "image": row["path_s3"],
                 "id_observation": row["id_observation"],
-                "site_mock":"",
-                "region_mock":"",
-                "commune_mock":"",
-                "geo_map_html":"",
-                "latitude_mock":"",
-                "longitude_mock":"",
-                "departement_mock":"",
+                "site": row["relais"] or "",
+                "region": row["reg_nom"] or "",
+                "commune": row["nearest_commune"] or "",
+                "geo_map_html":f'<a href="https://www.openstreetmap.org/?mlat={row["latitude"]}&mlon={row["longitude"]}" target="_blank">Voir la carte</a>' or "",
+                "latitude": row["latitude"] or "",
+                "longitude": row["longitude"] or "",
+                "departement": row["dep_nom"] or "",
             }
         })
 
