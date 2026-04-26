@@ -30,7 +30,10 @@ sys.modules["ultralytics.nn.modules.transformer"] = modules
 
 torch.use_deterministic_algorithms(False)
 _orig = torch.load
-torch.load = lambda *a, **kw: _orig(*a, **kw, weights_only=False)
+def _patched_torch_load(*a, **kw):
+    kw.setdefault('weights_only', False)
+    return _orig(*a, **kw)
+torch.load = _patched_torch_load
 
 _LOGGER_NAME = "biolit.crop_inference"
 

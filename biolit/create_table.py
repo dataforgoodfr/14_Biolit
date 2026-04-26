@@ -270,6 +270,11 @@ def load_observations_from_db_for_ML(engine) -> pl.DataFrame:
         USING (id_observation)
         WHERE LOWER(validee) = 'false'
         AND photos LIKE 'https:%'
+        AND id_observation NOT IN (
+            SELECT DISTINCT CAST(split_part(id_crops, '_', 1) AS BIGINT) FROM ml_crops
+            UNION
+            SELECT DISTINCT CAST(id_observation AS BIGINT) FROM ml_no_crops
+        )
         LIMIT 20
     """
     return pl.read_database(query, engine)
