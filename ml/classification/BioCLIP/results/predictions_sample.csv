@@ -1,0 +1,41 @@
+image,espece_pred,confiance,methode,top1_common,conf_common,top2_common,top3_common,top1_proto,conf_proto,top2_proto,top3_proto
+Biolit-Espece (1).webp,Fucus spiralis,0.6717,classifier_top50_low,Fucus spiralis,0.6717,Fucus serratus,Ulva spp.,Fucus spiralis,0.528,Fucus vesiculosus,Fucus serratus
+Biolit-Espece (10).webp,?,0.1707,rejected,Littorina littorea,0.1707,Phorcus lineatus,Littorina obtusata,Posidonia oceanica,0.1192,Littorina fabalis/obtusata,Littorina obtusata
+Biolit-Espece (11).webp,Asterina gibbosa,0.9814,classifier_top50,Asterina gibbosa,0.9814,Asterias rubens,Anomia ephippium,Asterina gibbosa,0.9997,Asterias rubens,Mactra stultorum
+Biolit-Espece (12).webp,Clibanarius erythropus,0.956,prototypical_rare,Carcinus maenas,0.6784,Eriphia verrucosa,Tritia reticulata,Clibanarius erythropus,0.956,Tritia reticulata,Arca noae
+Biolit-Espece (13).webp,Ocenebra erinaceus,0.6997,classifier_top50_low,Ocenebra erinaceus,0.6997,Nucella lapillus,Hexaplex trunculus,Ocenebra erinaceus,0.9691,Nucella lapillus,Mactra stultorum
+Biolit-Espece (14).webp,?,0.2331,rejected,Littorina obtusata,0.2331,Patella sp.,Ulva spp.,Littorina fabalis/obtusata,0.2191,Armeria maritima,Branta bernicla
+Biolit-Espece (15).webp,?,0.2215,rejected,Crithmum maritimum,0.2215,Littorina obtusata,Anomia ephippium,Branta bernicla,0.1091,Larus argentatus,Crithmum maritimum
+Biolit-Espece (16).webp,Xantho pilipes,0.8036,prototypical_rare,Carcinus maenas,0.3869,Xantho hydrophilus,Pachygrapsus marmoratus,Xantho pilipes,0.8036,Carcinus maenas,Chthamalus montagui
+Biolit-Espece (17).webp,Fucus spiralis,0.5016,classifier_top50_low,Fucus spiralis,0.5016,Fucus serratus,Nucella lapillus,Fucus spiralis,0.3198,Steromphala pennanti,Fucus vesiculosus
+Biolit-Espece (18).webp,Littorina littorea,0.5133,classifier_top50_low,Littorina littorea,0.5133,Littorina obtusata,Phorcus lineatus,Palaemon elegans,0.1308,Steromphala umbilicalis,Steromphala pennanti
+Biolit-Espece (19).webp,Crithmum maritimum,0.9176,classifier_top50,Crithmum maritimum,0.9176,Fucus spiralis,Fucus serratus,Crithmum maritimum,0.9883,Codium fragile subsp. fragile,Perforatus perforatus
+Biolit-Espece (2).webp,Necora puber,0.5323,classifier_top50_low,Necora puber,0.5323,Carcinus maenas,Physalia physalis,Necora puber,0.4969,Carcinus maenas,Physalia physalis
+Biolit-Espece (20).webp,Crithmum maritimum,0.6519,classifier_top50_low,Crithmum maritimum,0.6519,Physalia physalis,Littorina obtusata,Crithmum maritimum,0.3624,Egretta garzetta,Anemonia viridis
+Biolit-Espece (21).webp,Arca noae,0.4402,classifier_top50_low,Arca noae,0.4402,Sepia officinalis,Crepidula fornicata,Venus verrucosa,0.1281,Arca noae,Scyliorhinus canicula
+Biolit-Espece (22).webp,?,0.2652,rejected,Patella sp.,0.2652,Pachygrapsus marmoratus,Fucus serratus,Ulva spp.,0.1298,Steromphala pennanti,Arenaria interpres
+Biolit-Espece (23).webp,?,0.2694,rejected,Actinia mediterranea,0.2694,Posidonia oceanica,Ulva spp.,Actinia mediterranea,0.1568,Actinia equina,Posidonia oceanica
+Biolit-Espece (24).webp,?,0.1589,rejected,Ulva spp.,0.1589,Pachygrapsus marmoratus,Paracentrotus lividus,Actinia mediterranea,0.1194,Ulva spp.,Mactra stultorum
+Biolit-Espece (25).webp,Sphaerococcus coronopifolius,0.7151,prototypical_rare,Ocenebra erinaceus,0.1967,Fucus serratus,Patella sp.,Sphaerococcus coronopifolius,0.7151,Patella vulgata,Bolma rugosa
+Biolit-Espece (26).webp,Actinia mediterranea,0.9534,classifier_top50,Actinia mediterranea,0.9534,Pachygrapsus marmoratus,Nucella lapillus,Actinia mediterranea,0.9057,Actinia equina,Scyliorhinus canicula
+Biolit-Espece (27).webp,?,0.6456,rejected,Carcinus maenas,0.2656,Maja brachydactyla,Pachygrapsus marmoratus,Maja brachydactyla,0.6456,Pachygrapsus marmoratus,Porcellana platycheles
+Biolit-Espece (28).webp,Codium bursa,0.8662,classifier_top50,Codium bursa,0.8662,Haliotis tuberculata tuberculata,Cancer pagurus,Codium bursa,0.9293,Anemonia viridis,Xantho pilipes
+Biolit-Espece (29).webp,?,0.2644,rejected,Maja brachydactyla,0.2221,Posidonia oceanica,Ocenebra erinaceus,Hexaplex trunculus,0.2644,Buccinum undatum,Steromphala umbilicalis
+Biolit-Espece (3).webp,Sphaerococcus coronopifolius,0.9488,prototypical_rare,Ulva spp.,0.2569,Fucus serratus,Posidonia oceanica,Sphaerococcus coronopifolius,0.9488,Ascophyllum nodosum,Himanthalia elongata
+Biolit-Espece (30).webp,Sphaerococcus coronopifolius,0.8848,prototypical_rare,Posidonia oceanica,0.404,Maja brachydactyla,Ulva spp.,Sphaerococcus coronopifolius,0.8848,Porcellana platycheles,Maja brachydactyla
+Biolit-Espece (31).webp,?,0.2953,rejected,Nucella lapillus,0.2427,Carcinus maenas,Patella sp.,Palaemon elegans,0.2953,Steromphala pennanti,Buccinum undatum
+Biolit-Espece (32).webp,Ophiothrix fragilis,0.5528,classifier_top50_low,Ophiothrix fragilis,0.5528,Posidonia oceanica,Porcellana platycheles,Ophiothrix fragilis,0.2084,Littorina saxatilis,Padina pavonica
+Biolit-Espece (33).webp,Psammechinus miliaris,0.7013,classifier_top50_low,Psammechinus miliaris,0.7013,Paracentrotus lividus,Echinocardium cordatum,Psammechinus miliaris,0.9308,Paracentrotus lividus,Steromphala pennanti
+Biolit-Espece (34).webp,Padina pavonica,0.8259,prototypical_rare,Hexaplex trunculus,0.2807,Echinocardium cordatum,Nucella lapillus,Padina pavonica,0.8259,Lepas (Anatifa) anatifera,Bolma rugosa
+Biolit-Espece (35).webp,Mytilus edulis,0.6801,classifier_top50_low,Mytilus edulis,0.6801,Fucus spiralis,Sepia officinalis,Mytilus edulis,0.1577,Mytilus galloprovincialis,Ulva spp.
+Biolit-Espece (36).webp,Venus verrucosa,0.912,prototypical_rare,Cerastoderma edule,0.3278,Littorina littorea,Phorcus lineatus,Venus verrucosa,0.912,Mactra stultorum,Cerastoderma edule
+Biolit-Espece (37).webp,?,0.2779,rejected,Nucella lapillus,0.1932,Anemonia viridis,Steromphala umbilicalis,Steromphala pennanti,0.2779,Anemonia viridis,Codium fragile subsp. fragile
+Biolit-Espece (38).webp,Actinia equina,0.9477,classifier_top50,Actinia equina,0.9477,Cereus pedunculatus,Anemonia viridis,Actinia equina,0.585,Aulactinia verrucosa,Urticina felina
+Biolit-Espece (39).webp,Lipophrys pholis,0.6698,classifier_top50_low,Lipophrys pholis,0.6698,Maja brachydactyla,Actinia mediterranea,Lipophrys pholis,0.9697,Steromphala pennanti,Branta bernicla
+Biolit-Espece (4).webp,Ulva spp.,0.9303,classifier_top50,Ulva spp.,0.9303,Fucus spiralis,Botryllus schlosseri,Ulva spp.,0.682,Fucus vesiculosus,Codium fragile subsp. fragile
+Biolit-Espece (40).webp,Ulva spp.,0.9462,classifier_top50,Ulva spp.,0.9462,Botryllus schlosseri,Fucus serratus,Ulva spp.,0.876,Fucus spiralis,Sphaerococcus coronopifolius
+Biolit-Espece (5).webp,?,0.5755,rejected,Arca noae,0.1844,Haliotis tuberculata tuberculata,Cancer pagurus,Arca noae,0.5755,Steromphala pennanti,Pecten maximus
+Biolit-Espece (6).webp,Codium bursa,0.9562,classifier_top50,Codium bursa,0.9562,Posidonia oceanica,Ulva spp.,Codium bursa,0.8655,Colpomenia peregrina,Littorina saxatilis
+Biolit-Espece (7).webp,Sepia officinalis,0.8776,classifier_top50,Sepia officinalis,0.8776,Hexaplex trunculus,Actinia mediterranea,Sepia officinalis,0.296,Scyliorhinus canicula,Actinia mediterranea
+Biolit-Espece (8).webp,Anemonia viridis,0.7578,classifier_top50_low,Anemonia viridis,0.7578,Nucella lapillus,Crithmum maritimum,Anemonia viridis,0.8627,Codium fragile subsp. fragile,Steromphala pennanti
+Biolit-Espece (9).webp,Anemonia viridis,0.8617,classifier_top50,Anemonia viridis,0.8617,Cereus pedunculatus,Ulva spp.,Anemonia viridis,0.1278,Posidonia oceanica,Columbella rustica
