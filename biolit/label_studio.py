@@ -161,3 +161,74 @@ def delete_tasks_label_studio(project_title: str):
     for task_id in task_ids:
         client.tasks.delete(task_id)
     LOGGER.info(f"{len(task_ids)} tasks deleted from project {project.id}")
+
+def extract_no_crop_data_from_label_studio(project_title: str) -> pl.DataFrame:
+    """
+    Extraction brute des tâches Label Studio (aucun filtrage métier).
+    """
+
+    api_key = os.getenv("LABEL_STUDIO_API_KEY_DATAFORGOOD")
+    url = os.getenv("LABEL_STUDIO_URL")
+
+    client = LabelStudio(base_url=url, api_key=api_key)
+
+    # -------------------------
+    # Récupération projet
+    # -------------------------
+    projets = client.projects.list()
+
+    project_id = next(
+        (p.id for p in projets if p.title == project_title),
+        None
+    )
+
+    if project_id is None:
+        LOGGER.warning(f"Projet {project_title} introuvable")
+        return pl.DataFrame()
+
+    # -------------------------
+    # Récupération des tasks
+    # -------------------------
+    tasks = client.tasks.list(project=project_id)
+
+    rows = []
+
+    for task in tasks:
+
+        annotation = task.annotations[0] if task.annotations else None
+
+        rows.append({
+            # -------------------------
+            # Identifiants
+            # -------------------------
+            "task_id": task.id,
+            "id_observation": task.data.get("id_observation"),
+            "image": task.data.get("image"),
+
+            # -------------------------
+            # Etats Label Studio
+            # -------------------------
+            "completed": getattr(task, "is_labeled", None),
+            "cancelled": bool(getattr(task, "cancelled", False)),
+            "has_annotations": bool(task.annotations),
+
+            # -------------------------
+            # Annotation (si existe)
+            # -------------------------
+            "annotated_by": getattr(annotation, "completed_by", None) if annotation else None,
+            "annotated_at": getattr(annotation, "created_at", None) if annotation else None,
+
+            # -------------------------
+            # Predictions (ML)
+            # -------------------------
+            "predictions": getattr(task, "predictions", None),
+        })
+
+    df = pl.DataFrame(rows)
+
+    LOGGER.info(
+        "Extraction brute Label Studio terminée",
+        nb_tasks=len(df)
+    )
+
+    return df
