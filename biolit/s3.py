@@ -2,6 +2,7 @@ import boto3
 import structlog
 import os
 from dotenv import load_dotenv
+import botocore.exceptions
 from botocore.exceptions import ClientError
 from io import BytesIO
 from PIL import Image
@@ -64,7 +65,6 @@ def create_s3_client():
     )
 
 def upload_parquet_s3(client, df, bucket_name: str, object_name: str):
-    import polars as pl
     buffer = BytesIO()
     df.write_parquet(buffer)
     buffer.seek(0)
@@ -75,6 +75,25 @@ def upload_parquet_s3(client, df, bucket_name: str, object_name: str):
         ContentLength=buffer.getbuffer().nbytes,
     )
     LOGGER.info("Parquet uploaded", path=f"s3://{bucket_name}/{object_name}")
+
+def _check_file_existence_s3(client, bucket_name: str, key: str) -> bool:
+    try:
+        client.head_object(Bucket= bucket_name, Key = key)
+        LOGGER.info("File exists:", key=key)
+        return True
+    except botocore.exceptions.ClientError as e:
+        if e.response['Error']['Code'] == "404":
+            LOGGER.info("The File does not exist:", key=key)
+        elif e.response['Error']['Code'] == "403":
+            LOGGER.info("Vous n'avez pas les bonnes clés d'accès au S3.")
+        else:
+            LOGGER.info("Autre erreur", value= e.response['Error']['Code'])
+        return False
+
+def _read_file_s3(client, bucket_name: str, key: str) -> bytes:
+    obj = client.get_object(Bucket=bucket_name, Key=key)
+    LOGGER.info("Fichier Lu :", key=key)
+    return obj["Body"].read()
 
 def upload_image_s3(client, pil_img: Image.Image, bucket_name: str, object_name: str):
     buffer = BytesIO()
