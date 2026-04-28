@@ -205,6 +205,46 @@ def insert_enriched_dataframe(df: pd.DataFrame, engine):
                 ON CONFLICT (id_observation) DO NOTHING
             """), row)
 
+def insert_no_crops_dataframe(df: pl.DataFrame, engine):
+    rows = df.to_dicts()
+
+    with engine.begin() as conn:
+        for row in rows:
+            conn.execute(text("""
+                INSERT INTO ml_no_crops (
+                    run_name,
+                    id_observation,
+                    path_s3
+                ) VALUES (
+                    :run_name,
+                    :id_observation,
+                    :path_s3
+                )
+                ON CONFLICT (id_observation) DO NOTHING
+            """), row)
+
+def insert_crops_dataframe(df: pl.DataFrame, engine):
+    rows = df.to_dicts()
+
+    with engine.begin() as conn:
+        for row in rows:
+            conn.execute(text("""
+                INSERT INTO ml_crops (
+                    run_name,
+                    id_crops,
+                    regne,
+                    confiance,
+                    path_s3
+                ) VALUES (
+                    :run_name,
+                    :id_crops,
+                    :regne,
+                    :confiance,
+                    :path_s3
+                )
+                ON CONFLICT (id_crops) DO NOTHING
+            """), row)
+
 def load_observations_from_db(engine) -> pl.DataFrame:
     query = """
         SELECT *
@@ -213,10 +253,80 @@ def load_observations_from_db(engine) -> pl.DataFrame:
 
     return pl.read_database(query, engine)
 
-def load_observations_from_db_for_S3(engine) -> pl.DataFrame:
+def load_observations_from_db_for_ML(engine) -> pl.DataFrame:
     query = """
-        SELECT id_observation, photos, latitude, longitude
+        SELECT
+            id_observation,
+            photos,
+            latitude,
+            longitude,
+            relais,
+            nearest_commune,
+            reg_nom,
+            dep_nom,
+            validee
         FROM observations
-        LIMIT 10
+        LEFT JOIN observations_enriched
+        USING (id_observation)
+        WHERE LOWER(validee) = 'false'
+        AND photos LIKE 'https:%'
+        AND id_observation NOT IN (
+            SELECT DISTINCT CAST(split_part(id_crops, '_', 1) AS BIGINT) FROM ml_crops
+            UNION
+            SELECT DISTINCT CAST(id_observation AS BIGINT) FROM ml_no_crops
+        )
+        LIMIT 20
     """
     return pl.read_database(query, engine)
+
+def load_observations_from_crops_for_Label_Studio(engine) -> pl.DataFrame:
+    query = """
+        SELECT *
+        FROM ml_crops
+    """
+    return pl.read_database(query, engine)
+
+def create_taxonomy_table(engine):
+    with engine.begin() as conn:
+        conn.execute(text("""
+            CREATE TABLE IF NOT EXISTS ml_taxonomy (
+                id_crops        TEXT PRIMARY KEY,
+                run_name        TEXT,
+                id_observation  TEXT,
+                regne           TEXT,
+                confiance       DOUBLE PRECISION,
+                path_s3         TEXT,
+                best_level      TEXT,
+                best_label      TEXT,
+                best_score      DOUBLE PRECISION,
+                phylum          TEXT,
+                classe          TEXT,
+                ordre           TEXT,
+                famille         TEXT,
+                species_name    TEXT
+            );
+        """))
+
+def insert_taxonomy_predictions(df: pl.DataFrame, engine) -> None:
+    rows = df.to_dicts()
+    with engine.begin() as conn:
+        for row in rows:
+            conn.execute(text("""
+                INSERT INTO ml_taxonomy (
+                    id_crops, run_name, id_observation,
+                    regne, confiance, path_s3,
+                    best_level, best_label, best_score,
+                    phylum, classe, ordre, famille, species_name
+                ) VALUES (
+                    :id_crops, :run_name, :id_observation,
+                    :regne_yolo, :confiance_yolo, :path_s3,
+                    :best_level, :best_label, :best_score,
+                    :phylum, :classe, :ordre, :famille, :species_name
+                )
+                ON CONFLICT (id_crops) DO UPDATE SET
+                    run_name     = EXCLUDED.run_name,
+                    best_level   = EXCLUDED.best_level,
+                    best_label   = EXCLUDED.best_label,
+                    best_score   = EXCLUDED.best_score
+            """), row)
+    LOGGER.info("ml_taxonomy: %d lignes insérées", len(rows))

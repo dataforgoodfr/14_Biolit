@@ -28,7 +28,8 @@ dependencies = [
     "shapely>=2.1.2",
     "structlog>=25.5.0",
     "tqdm>=4.67.3",
-    "transformers==4.41.2",
+    "transformers>=4.40",
+    "tokenizers>=0.19",
     "torch>=2.11.0",
     "roboflow>=1.2.16",
     "autodistill>=0.1.29",
@@ -37,8 +38,13 @@ dependencies = [
     "ultralytics",
     "supervision>=0.27.0.post2",
     "scikit-learn>=1.8.0",
-    "boto3>=1.42.80",
     "python-dotenv>=1.2.2",
+    "huggingface-hub>=0.36.2",
+    "ultralytics>=8.0.81",
+    "minio>=7.2.20",
+    "label-studio-sdk>=2.0.13",
+    "boto3>=1.42.89",
+    "open-clip-torch>=2.24.0",
 ]
 
 [tool.pytest.ini_options]

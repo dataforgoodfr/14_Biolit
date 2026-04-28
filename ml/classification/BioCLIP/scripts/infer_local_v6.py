@@ -1,0 +1,755 @@
+"""
+INFÉRENCE LOCALE — Hybride V6 Whitening + PCA
+==============================================
+Classifie des images locales avec le système hybride v6.
+
+Fichiers requis  :
+  - prototypes_v4_*.pt     → prototypes + température + alpha + whitening
+  - best_model_top50_*.pth → classifier top 50
+
+Usage :
+  python infer_local_v6.py --images /chemin/vers/dossier/
+                            --prototypes prototypes_v4_*.pt
+                            --classifier best_model_top50_*.pth
+                            --output resultats_inference.csv
+                            --taxonomy export_biolit_enriched_complete.csv
+"""
+
+import subprocess, sys
+
+try:
+    import open_clip
+except ImportError:
+    print("Installation open_clip...")
+    subprocess.check_call([sys.executable, "-m", "pip", "install",
+                           "open-clip-torch", "-q"])
+    import open_clip
+
+import argparse
+import torch
+import torch.nn as nn
+import torch.nn.functional as F
+from torchvision import transforms
+from pathlib import Path
+from PIL import Image
+from tqdm import tqdm
+import pandas as pd
+
+# ── Descriptions textuelles ( — nécessaires pour refaire la fusion) ──
+SPECIES_DESCRIPTIONS = {
+    "Actinia equina":          "a photo of Actinia equina, beadlet anemone, red or green column with blue acrorhagi beads, rocky intertidal shore",
+    "Anemonia viridis":        "a photo of Anemonia viridis, snakelocks anemone, long green tentacles with purple tips, shallow rocky coast",
+    "Phorcus lineatus":        "a photo of Phorcus lineatus, toothed top shell, small conical snail with zebra-striped shell on wet rocks",
+    "Patella vulgata":         "a photo of Patella vulgata, common limpet, oval ribbed conical shell clamped on rock, intertidal gastropod",
+    "Fucus vesiculosus":       "a photo of Fucus vesiculosus, bladder wrack, brown seaweed with paired spherical air bladders on rocky shore",
+    "Littorina littorea":      "a photo of Littorina littorea, common periwinkle, small dark rounded snail shell on rocks or seaweed",
+    "Carcinus maenas":         "a photo of Carcinus maenas, European green shore crab, five frontal teeth, olive to dark green carapace",
+    "Mytilus edulis":          "a photo of Mytilus edulis, blue mussel, elongated blue-black bivalve shell in dense clusters on rocks",
+    "Nucella lapillus":        "a photo of Nucella lapillus, dog whelk, robust spiral shell banded white grey brown near barnacles",
+    "Semibalanus balanoides":  "a photo of Semibalanus balanoides, acorn barnacle, white volcano-shaped encrusting shell in dense colonies on rock",
+    "Chthamalus montagui":     "a photo of Chthamalus montagui, Montagu barnacle, small oval grey barnacle at upper shore level",
+    "Chthamalus stellatus":    "a photo of Chthamalus stellatus, star barnacle, small grey barnacle with star-shaped aperture, upper Mediterranean shore",
+    "Patella ulyssiponensis":  "a photo of Patella ulyssiponensis, chinaman hat limpet, flat ribbed limpet with orange foot on Atlantic rocks",
+    "Patella depressa":        "a photo of Patella depressa, black-footed limpet, low conical ribbed shell with dark foot mid to lower shore",
+    "Gibbula umbilicalis":     "a photo of Gibbula umbilicalis, purple top shell, flattened spiral shell with purple streaks under rocks",
+    "Gibbula cineraria":       "a photo of Gibbula cineraria, grey top shell, small conical shell grey and purple stripes on kelp",
+    "Stramonita haemastoma":   "a photo of Stramonita haemastoma, red-mouthed rock shell, spiny gastropod with orange-red aperture on rocky coast",
+    "Codium tomentosum":       "a photo of Codium tomentosum, velvet horn, dark green spongy dichotomously branching alga on rocks",
+    "Ulva lactuca":            "a photo of Ulva lactuca, sea lettuce, bright green flat translucent alga sheets on rocky shore",
+    "Fucus serratus":          "a photo of Fucus serratus, serrated wrack, brown seaweed with finely serrated frond edges no bladders",
+    "Ascophyllum nodosum":     "a photo of Ascophyllum nodosum, egg wrack, long yellowish-brown seaweed with single egg-shaped air bladders",
+    "Corallina officinalis":   "a photo of Corallina officinalis, coral weed, jointed pink calcified alga forming tufts in rock pools",
+    "Posidonia oceanica":      "a photo of Posidonia oceanica, Neptune seagrass, long ribbon-like green leaves in Mediterranean underwater meadows",
+    "Cymodocea nodosa":        "a photo of Cymodocea nodosa, little Neptune grass, narrow green seagrass in shallow sandy Mediterranean bottoms",
+    "Sepia officinalis":       "a photo of Sepia officinalis, common cuttlefish, broad flat cephalopod with brown zebra-striped pattern",
+    "Octopus vulgaris":        "a photo of Octopus vulgaris, common octopus, eight-armed mollusc with large rounded head and suckers",
+    "Paracentrotus lividus":   "a photo of Paracentrotus lividus, purple sea urchin, dark purple-brown spiny echinoderm on rocky shores",
+    "Psammechinus miliaris":   "a photo of Psammechinus miliaris, green sea urchin, small sea urchin with green spines tipped purple",
+    "Echinus esculentus":      "a photo of Echinus esculentus, edible sea urchin, large pink-red spiny urchin with white-tipped spines",
+    "Asterias rubens":         "a photo of Asterias rubens, common starfish, five-armed orange brown seastar on mussel beds",
+    "Marthasterias glacialis": "a photo of Marthasterias glacialis, spiny starfish, large pale starfish with prominent spines on each arm",
+    "Palaemon serratus":       "a photo of Palaemon serratus, common prawn, transparent shrimp with red-brown bands on body and claws",
+    "Palaemon elegans":        "a photo of Palaemon elegans, rock pool prawn, small translucent slim prawn in tide pools",
+    "Pachygrapsus marmoratus": "a photo of Pachygrapsus marmoratus, marbled rock crab, square dark carapace with white marbled pattern on rocks",
+    "Eriphia verrucosa":       "a photo of Eriphia verrucosa, warty crab, robust dark brown crab with unequal claws and knobbly carapace",
+    "Pilumnus hirtellus":      "a photo of Pilumnus hirtellus, hairy crab, small crab covered in dense brown fur on rocky undersides",
+    "Maja brachydactyla":      "a photo of Maja brachydactyla, spiny spider crab, triangular spiny carapace with long thin legs",
+    "Cancer pagurus":          "a photo of Cancer pagurus, edible crab, large brown oval crab with pie-crust edge carapace",
+    "Necora puber":            "a photo of Necora puber, velvet swimming crab, dark blue-brown crab with red eyes and velvety hairy legs",
+    "Aplysia punctata":        "a photo of Aplysia punctata, spotted sea hare, large soft purple-brown mollusc with wing-like parapodia",
+    "Pelagia noctiluca":       "a photo of Pelagia noctiluca, mauve stinger jellyfish, pink-purple medusa with long tentacles in open sea",
+    "Velella velella":         "a photo of Velella velella, by-the-wind sailor, blue oval float with upright transparent sail on sea surface",
+    "Branta bernicla":         "a photo of Branta bernicla, brent goose, small dark goose black head neck white neck patch on coastal mudflats",
+    "Larus argentatus":        "a photo of Larus argentatus, herring gull, large white grey seagull with yellow bill red spot on coastal rocks",
+    "Phalacrocorax carbo":     "a photo of Phalacrocorax carbo, great cormorant, large black seabird with hooked bill perched on rocks drying wings",
+    "Zostera marina":          "a photo of Zostera marina, common eelgrass, narrow ribbon-like green seagrass in sheltered bays and estuaries",
+    "Fucus spiralis":          "a photo of Fucus spiralis, spiral wrack, twisted narrow brown fronds at top of shore without bladders",
+    "Pelvetia canaliculata":   "a photo of Pelvetia canaliculata, channelled wrack, yellowish-brown seaweed with inrolled channel-shaped fronds above tide",
+    "Himanthalia elongata":    "a photo of Himanthalia elongata, thongweed, long strap-like brown seaweed from button-shaped holdfast on lower shore",
+    "Padina pavonica":         "a photo of Padina pavonica, peacock tail, fan-shaped brown alga with concentric white bands Mediterranean",
+    "Galathea squamifera":     "a photo of Galathea squamifera, squat lobster, flattened brown crustacean with broad abdomen under rocks",
+    "Palaemon serratus":       "a photo of Palaemon serratus, common prawn, transparent shrimp with red-brown bands on body and claws",
+    "Ligia oceanica":          "a photo of Ligia oceanica, sea slater, large grey isopod crustacean running on rocky supralittoral",
+    "Ophioderma longicauda":   "a photo of Ophioderma longicauda, serpent star brittlestar, five long snake-like arms under rocks",
+    "Holothuria tubulosa":     "a photo of Holothuria tubulosa, sea cucumber, brown elongated soft-bodied echinoderm on sandy bottom",
+    # 63 descriptions complètes 
+    "Acanthocardia tuberculata":        "a photo of Acanthocardia tuberculata, rough cockle, large ribbed bivalve with tuberculated ribs on sandy intertidal",
+    "Actinia mediterranea":             "a photo of Actinia mediterranea, Mediterranean sea anemone, dark column with blue-purple acrorhagi on rocky shore",
+    "Anomia ephippium":                 "a photo of Anomia ephippium, saddle oyster, thin flat irregular bivalve cemented to rocks or shells",
+    "Arca noae":                        "a photo of Arca noae, Noah ark shell, elongated ribbed bivalve with hairy periostracum attached to rocks",
+    "Arenaria interpres":               "a photo of Arenaria interpres, ruddy turnstone, small wading bird with orange and white plumage turning pebbles on shore",
+    "Armeria maritima":                 "a photo of Armeria maritima, sea thrift, pink flowering plant in dense cushion on coastal cliffs and salt marsh",
+    "Asterina gibbosa":                 "a photo of Asterina gibbosa, cushion star, small thick-armed pentagonal seastar greenish-brown on intertidal rocks",
+    "Aulactinia verrucosa":             "a photo of Aulactinia verrucosa, gem anemone, small anemone with pink or grey column covered with adhesive warts on rock",
+    "Austrominius modestus":            "a photo of Austrominius modestus, barnacle, small acorn barnacle with four wall plates on intertidal rock surfaces",
+    "Bolma rugosa":                     "a photo of Bolma rugosa, rugose star shell, robust turbinid gastropod with wrinkled ridges on Mediterranean rock",
+    "Botryllus schlosseri":             "a photo of Botryllus schlosseri, star ascidian, flat colonial tunicate with star-shaped zooid clusters on rocks and algae",
+    "Buccinum undatum":                 "a photo of Buccinum undatum, common whelk, large ovate spirally ridged shell on subtidal rocky and sandy bottoms",
+    "Calliostoma zizyphinum":           "a photo of Calliostoma zizyphinum, painted top shell, sharply conical shell with rows of granules in pink and cream",
+    "Cerastoderma edule":               "a photo of Cerastoderma edule, common cockle, ribbed rounded bivalve with 22 to 28 ribs on sandy intertidal sediment",
+    "Cereus pedunculatus":              "a photo of Cereus pedunculatus, daisy anemone, column buried in sand with flat disc bearing many short tentacles",
+    "Cerithium vulgatum":               "a photo of Cerithium vulgatum, common cerith, tall narrow spiral shell with nodular ridges on Mediterranean rocks and seagrass",
+    "Codium bursa":                     "a photo of Codium bursa, ball codium, spherical dark green spongy alga on Mediterranean subtidal rock",
+    "Codium fragile subsp. fragile":    "a photo of Codium fragile, green sponge weed, cylindrical dichotomously branching dark green alga on rocky shore",
+    "Colpomenia peregrina":             "a photo of Colpomenia peregrina, oyster thief alga, hollow spherical to lobed brown bubble-like alga attached to other algae",
+    "Columbella rustica":               "a photo of Columbella rustica, rustic dove shell, small oval shell with fine teeth on outer lip on Mediterranean rock",
+    "Crepidula fornicata":              "a photo of Crepidula fornicata, slipper limpet, oval flat shell with internal shelf stacked in chains on rocks and shells",
+    "Crithmum maritimum":               "a photo of Crithmum maritimum, rock samphire, aromatic coastal plant with fleshy divided leaves and yellow flowers on cliffs",
+    "Cymbulia peronii":                 "a photo of Cymbulia peronii, sea butterfly, small translucent gelatinous pteropod mollusc drifting in open sea",
+    "Echinocardium cordatum":           "a photo of Echinocardium cordatum, sea potato, oval heart-shaped sand urchin with dense pale spines in sandy sediment",
+    "Egretta garzetta":                 "a photo of Egretta garzetta, little egret, small white heron with black bill and yellow feet wading in coastal shallows",
+    "Halichoerus grypus":               "a photo of Halichoerus grypus, grey seal, large grey seal with long horse-like snout on coastal rocks and beaches",
+    "Haliotis tuberculata tuberculata": "a photo of Haliotis tuberculata, green ormer, flat ear-shaped shell with row of holes and iridescent nacre interior",
+    "Hexaplex trunculus":               "a photo of Hexaplex trunculus, banded murex, ornate spiny gastropod with dark spiral bands on Mediterranean rocky coast",
+    "Lepas (Anatifa) anatifera":        "a photo of Lepas anatifera, goose barnacle, stalked barnacle with smooth blue-white plates hanging on driftwood or flotsam",
+    "Lipophrys pholis":                 "a photo of Lipophrys pholis, shanny blenny, small blunt-headed fish with long dorsal fin in intertidal rock pools",
+    "Littorina fabalis/obtusata":       "a photo of Littorina obtusata, flat periwinkle, smooth flattened rounded shell yellow orange or brown on wrack seaweed",
+    "Littorina obtusata":               "a photo of Littorina obtusata, flat periwinkle, smooth flattened rounded shell in yellow orange or brown on wrack seaweed",
+    "Littorina saxatilis":              "a photo of Littorina saxatilis, rough periwinkle, small ridged shell at top of shore on rocks and salt marsh",
+    "Mactra stultorum":                 "a photo of Mactra stultorum, rayed trough shell, smooth triangular bivalve with pale rays on sandy beach",
+    "Magallana gigas":                  "a photo of Magallana gigas, Pacific oyster, large irregularly shaped craggy cupped bivalve in intertidal clusters",
+    "Magallana gigas / Ostrea edulis":  "a photo of oyster, large bivalve with rough irregular shell flat or cupped cemented to intertidal rocks",
+    "Mimachlamys varia":                "a photo of Mimachlamys varia, variegated scallop, ribbed bivalve with unequal ears in various colours on rocks",
+    "Mytilus galloprovincialis":        "a photo of Mytilus galloprovincialis, Mediterranean mussel, elongated blue-black bivalve in dense clusters on rocks",
+    "Nerophis lumbriciformis":          "a photo of Nerophis lumbriciformis, worm pipefish, thin worm-like pipefish without tail fin in intertidal seaweed",
+    "Ocenebra erinaceus":               "a photo of Ocenebra erinaceus, sting winkle, small spiny gastropod with frilled ridges drilling bivalves on shore",
+    "Ophiothrix fragilis":              "a photo of Ophiothrix fragilis, brittle star, spiny-armed ophiuroid with small central disc in dense aggregations on reef",
+    "Patella caerulea":                 "a photo of Patella caerulea, Mediterranean limpet, low conical ribbed limpet with blue-grey interior on Mediterranean rock",
+    "Patella sp.":                      "a photo of Patella limpet, conical oval ribbed shell clamped firmly on intertidal rock surface",
+    "Pecten maximus":                   "a photo of Pecten maximus, great scallop, large fan-shaped ribbed bivalve with equal ears on sandy seabed",
+    "Perforatus perforatus":            "a photo of Perforatus perforatus, barnacle, tall cone-shaped barnacle with porous shell wall on mid to lower shore rock",
+    "Phorcus turbinatus":               "a photo of Phorcus turbinatus, turbinate top shell, flattened spiral shell with zebra stripe pattern on Mediterranean shore",
+    "Physalia physalis":                "a photo of Physalia physalis, Portuguese man o war, large blue gas-filled float with long stinging tentacles at sea surface",
+    "Porcellana platycheles":           "a photo of Porcellana platycheles, broad-clawed porcelain crab, flat hairy oval crab under stones on intertidal shore",
+    "Raja clavata":                     "a photo of Raja clavata, thornback ray, flat diamond-shaped cartilaginous fish with thorny spines on dorsal surface",
+    "Raja undulata":                    "a photo of Raja undulata, undulate ray, flat ray with distinctive wavy brown markings on dorsal surface in coastal waters",
+    "Sabellaria alveolata":             "a photo of Sabellaria alveolata, honeycomb worm, reef-building polychaete forming honeycomb-textured sand tubes on rock",
+    "Sargassum muticum":                "a photo of Sargassum muticum, wireweed, bushy brown invasive alga with long main axis and small oval air bladders on rock",
+    "Scyliorhinus canicula":            "a photo of Scyliorhinus canicula, small-spotted catshark, slender shark with small brown spots on sandy or rocky seabed",
+    "Sphaerococcus coronopifolius":     "a photo of Sphaerococcus coronopifolius, red alga with flat pinnately divided fronds forming tufts in Mediterranean rock pools",
+    "Steromphala pennanti":             "a photo of Steromphala pennanti, Pennant top shell, small conical shell with grey and purple streaks on lower shore rocks",
+    "Steromphala umbilicalis":          "a photo of Steromphala umbilicalis, purple top shell, flattened spiral shell with deep umbilicus and purple streaks on rocky shore",
+    "Tritia reticulata":                "a photo of Tritia reticulata, netted dog whelk, small ovate shell with lattice sculpture on coastal intertidal sediment",
+    "Trivia monacha":                   "a photo of Trivia monacha, European cowrie, small oval glossy shell with ribbed dorsal groove feeding on tunicates",
+    "Ulva spp.":                        "a photo of Ulva sea lettuce, bright green flat or tubular thin alga sheet on intertidal rocks and pools",
+    "Urticina felina":                  "a photo of Urticina felina, dahlia anemone, large thick-columned anemone with colourful blunt tentacles in lower shore rock pools",
+    "Venus verrucosa":                  "a photo of Venus verrucosa, warty venus, rounded bivalve with concentric ridges bearing small tubercles on sandy intertidal",
+    "Xantho hydrophilus":               "a photo of Xantho hydrophilus, xanthid crab, robust oval yellowish-brown crab with black-tipped claws under intertidal rocks",
+    "Xantho pilipes":                   "a photo of Xantho pilipes, hairy xanthid crab, robust brown crab with hairy legs and black-tipped claws under rocks",
+}
+
+
+# ── Architecture classifier ─────────────────────────────────
+class LightClassifier(nn.Module):
+    def __init__(self, feature_dim, num_classes):
+        super().__init__()
+        self.net = nn.Sequential(
+            nn.LayerNorm(feature_dim),
+            nn.Linear(feature_dim, 512), nn.GELU(), nn.Dropout(0.5),
+            nn.Linear(512, 256),         nn.GELU(), nn.Dropout(0.25),
+            nn.Linear(256, num_classes)
+        )
+    def forward(self, x):
+        return self.net(x)
+
+
+def load_models(prototypes_path, classifier_path, device):
+    """Charge classifier + prototypes v3 et recrée la fusion Proto-CLIP."""
+
+    print("Chargement BioCLIP...")
+    bioclip, _, _ = open_clip.create_model_and_transforms("hf-hub:imageomics/bioclip")
+    bioclip = bioclip.to(device).eval()
+    tokenizer = open_clip.get_tokenizer("hf-hub:imageomics/bioclip")
+    print("BioCLIP prêt")
+
+    print("Chargement classifier top 50...")
+    ckpt50         = torch.load(classifier_path, map_location=device, weights_only=False)
+    idx_to_sp50    = ckpt50["idx_to_species"]
+    num_species_50 = ckpt50["num_species"]
+    feature_dim    = ckpt50["feature_dim"]
+    top50_species  = set(idx_to_sp50.values())
+    classifier     = LightClassifier(feature_dim, num_species_50).to(device).eval()
+    classifier.load_state_dict(ckpt50["classifier_state_dict"])
+    print(f"Classifier : {num_species_50} espèces communes")
+
+    print("Chargement prototypes v3...")
+    pt = torch.load(prototypes_path, map_location=device, weights_only=False)
+    proto_key      = "prototypes_v3" if "prototypes_v3" in pt else "prototypes"
+    prototypes_vis = pt[proto_key].to(device)
+    T_learned      = pt["temperature"]
+    alpha          = pt["alpha"]
+    idx_to_sp100   = pt["idx_to_species"]
+    species_list   = [idx_to_sp100[i] for i in range(len(idx_to_sp100))]
+    rare_species   = {sp for sp in species_list if sp not in top50_species}
+    seuil_top50    = pt.get("seuil_top50", 0.80)
+    seuil_proto    = pt.get("seuil_proto", 0.40)
+
+    # Charger la transformation whitening (v4)
+    import numpy as np
+    whitening_mu = pt.get("whitening_mu", None)   # numpy [1, 512]
+    whitening_W  = pt.get("whitening_W",  None)   # numpy [512, 256]
+    pca_dim      = pt.get("pca_dim",      None)
+    has_whitening = (whitening_mu is not None and whitening_W is not None)
+    if has_whitening:
+        print(f"Whitening chargé : 512d → {pca_dim}d")
+    else:
+        print("Pas de whitening dans ce .pt")
+
+    print(f"Prototypes visuels : {prototypes_vis.shape} | T*={T_learned:.1f} | α={alpha}")
+
+    # Reconstruire prototypes textuels pour la fusion Proto-CLIP
+    print(f"Encodage textuel des espèces (α={alpha})...")
+    text_protos = []
+    with torch.no_grad():
+        for sp in species_list:
+            text = SPECIES_DESCRIPTIONS.get(sp, f"a photo of {sp}, marine species on rocky coastal shore")
+            tokens = tokenizer([text]).to(device)
+            feat   = bioclip.encode_text(tokens)
+            feat   = F.normalize(feat, dim=-1)
+            text_protos.append(feat.squeeze(0))
+    text_proto_matrix = torch.stack(text_protos)   # [100, 512]
+
+    # Si whitening disponible -+ projeter prototypes textuels en 256d
+    if has_whitening:
+        X   = text_proto_matrix.cpu().float().numpy()
+        X_c = X - whitening_mu
+        X_w = X_c @ whitening_W
+        norms = np.linalg.norm(X_w, axis=1, keepdims=True)
+        X_w   = X_w / np.clip(norms, 1e-8, None)
+        text_proto_matrix = torch.from_numpy(X_w).float().to(device)
+
+    # Fusion Proto-CLIP (dans l'espace whitened en v4)
+    prototypes_v4 = F.normalize(
+        alpha * prototypes_vis + (1 - alpha) * text_proto_matrix,
+        dim=-1
+    )
+    print(f"Prototypes fusionnés (Proto-CLIP) : {prototypes_v4.shape}")
+
+    return {
+        "bioclip":        bioclip,
+        "classifier":     classifier,
+        "prototypes_v3":  prototypes_v4,
+        "idx_to_sp50":    idx_to_sp50,
+        "idx_to_sp100":   idx_to_sp100,
+        "top50_species":  top50_species,
+        "rare_species":   rare_species,
+        "species_list":   species_list,
+        "T_learned":      T_learned,
+        "seuil_top50":    seuil_top50,
+        "seuil_proto":    seuil_proto,
+        "feature_dim":    feature_dim,
+        "whitening_mu":   whitening_mu,
+        "whitening_W":    whitening_W,
+        "has_whitening":  has_whitening,
+    }
+
+
+def infer_images(image_paths, models, device, batch_size=32):
+    """Inférence hybride sur une liste de chemins d'images"""
+
+    img_transform = transforms.Compose([
+        transforms.Resize((224, 224)),
+        transforms.ToTensor(),
+        transforms.Normalize(
+            mean=[0.48145466, 0.4578275,  0.40821073],
+            std= [0.26862954, 0.26130258, 0.27577711]
+        )
+    ])
+
+    bioclip       = models["bioclip"]
+    classifier    = models["classifier"]
+    proto_mat     = models["prototypes_v3"]
+    idx_to_sp50   = models["idx_to_sp50"]
+    idx_to_sp100  = models["idx_to_sp100"]
+    rare_species  = models["rare_species"]
+    T             = models["T_learned"]
+    seuil_top50   = models["seuil_top50"]
+    seuil_proto   = models["seuil_proto"]
+
+    results = []
+    errors  = []
+
+    # Extraction features par batch
+    all_feats  = []
+    valid_paths = []
+    print(f"\nExtraction features ({len(image_paths)} images)...")
+    for start in tqdm(range(0, len(image_paths), batch_size)):
+        batch_paths = image_paths[start:start + batch_size]
+        batch_imgs  = []
+        batch_valid = []
+        for p in batch_paths:
+            try:
+                img = Image.open(p).convert("RGB")
+                batch_imgs.append(img_transform(img))
+                batch_valid.append(p)
+            except Exception as e:
+                errors.append({"image": str(p), "erreur": str(e)})
+        if not batch_imgs:
+            continue
+        with torch.no_grad():
+            f = bioclip.encode_image(torch.stack(batch_imgs).to(device))
+            f = F.normalize(f, dim=-1)
+        all_feats.append(f.cpu())
+        valid_paths.extend(batch_valid)
+
+    if not all_feats:
+        print("Aucune image valide trouvée")
+        return pd.DataFrame(), pd.DataFrame()
+
+    feats_512 = torch.cat(all_feats)   # [N, 512] — gardé pour le classifier
+    print(f"{len(valid_paths)} images extraites | shape={feats_512.shape}")
+
+    # Appliquer whitening si disponible (v4)
+    import numpy as np
+    whitening_mu = models.get("whitening_mu")
+    whitening_W  = models.get("whitening_W")
+    has_whitening = models.get("has_whitening", False)
+
+    if has_whitening:
+        X   = feats_512.float().numpy()
+        X_c = X - whitening_mu
+        X_w = X_c @ whitening_W
+        norms = np.linalg.norm(X_w, axis=1, keepdims=True)
+        X_w   = X_w / np.clip(norms, 1e-8, None)
+        feats_proto = torch.from_numpy(X_w).float().to(device)   # [N, 256] pour prototypes
+        print(f"Whitening appliqué : {feats_proto.shape}")
+    else:
+        feats_proto = feats_512.to(device)   # fallback v3
+
+    feats_clf = feats_512.to(device)   # [N, 512] — toujours 512d pour le classifier
+
+    # ── Chargement taxonomie (passée via attribut de fonction depuis main) ────
+    tax_lookup  = getattr(infer_images, "_taxonomy",  {})
+    niveaux_tax = getattr(infer_images, "_niveaux",   [])
+
+    # ── Fonction de calcul de confiance taxonomique ───────────────────────────
+    def taxon_confidence(probs_np_1d, idx_to_sp, tax_lookup, niveaux):
+        """
+        Pour une image, agrège les probabilités par taxon à chaque niveau.
+        probs_np_1d : array 1D de probas (somme ≈ 1) sur idx_to_sp espèces
+        Retourne un dict {conf_genre, pred_genre, pred_genre_2, conf_genre_2, ...}
+        """
+        if not niveaux or not tax_lookup:
+            return {}
+        row = {}
+        for niv in niveaux:
+            scores = {}
+            for j, sp in idx_to_sp.items():
+                tax = tax_lookup.get(sp, {}).get(niv)
+                if tax:
+                    scores[tax] = scores.get(tax, 0.0) + float(probs_np_1d[j])
+            if scores:
+                sorted_s = sorted(scores.items(), key=lambda x: -x[1])
+                row[f"pred_{niv}"]   = sorted_s[0][0]
+                row[f"conf_{niv}"]   = round(sorted_s[0][1], 4)
+                if len(sorted_s) > 1:
+                    row[f"pred_{niv}_2"] = sorted_s[1][0]
+                    row[f"conf_{niv}_2"] = round(sorted_s[1][1], 4)
+        return row
+
+    # ── Scoring hybride ───────────────────────────────────────────────────────
+    print("Scoring hybride...")
+    with torch.no_grad():
+        probs50  = F.softmax(classifier(feats_clf), dim=-1)              # [N, 50]
+        probs_v3 = torch.softmax(feats_proto @ proto_mat.T * T, dim=-1)  # [N, 100]
+
+    import numpy as np
+    probs50_np  = probs50.cpu().numpy()   # [N, 50]
+    probs100_np = probs_v3.cpu().numpy()  # [N, 100]
+
+    # Pré-construire probs50 étendu sur 100 espèces (pour fallback rejected)
+    # Mapper chaque idx50 → idx100 correspondant
+    idx50_to_idx100 = {}
+    sp100_to_idx100 = {sp: j for j, sp in idx_to_sp100.items()}  # lookup O(1)
+    for j50, sp in idx_to_sp50.items():
+        if sp in sp100_to_idx100:
+            idx50_to_idx100[j50] = sp100_to_idx100[sp]
+    idx100_covered = set(idx50_to_idx100.values())  # set pour test O(1)
+
+    for i, path in enumerate(tqdm(valid_paths, desc="Classification")):
+        c50    = probs50[i].max().item()
+        c_prot = probs_v3[i].max().item()
+        sp50   = idx_to_sp50[probs50[i].argmax().item()]
+        sp100  = idx_to_sp100[probs_v3[i].argmax().item()]
+
+        top3_50   = torch.topk(probs50[i], k=min(3, len(idx_to_sp50)))
+        top3_prot = torch.topk(probs_v3[i], k=min(3, len(idx_to_sp100)))
+
+        # ── Routing ───────────────────────────────────────────────────────────
+        if c50 >= seuil_top50:
+            methode, espece, conf = "classifier_top50",     sp50,  c50
+        elif c_prot >= seuil_proto and sp100 in rare_species:
+            methode, espece, conf = "prototypical_rare",    sp100, c_prot
+        elif c50 >= seuil_proto:
+            methode, espece, conf = "classifier_top50_low", sp50,  c50
+        else:
+            methode, espece, conf = "rejected",             "?",   max(c50, c_prot)
+
+        # ── Choix des probas pour la taxonomie — COHÉRENT avec le routing ─────
+        # classifier_top50 / classifier_top50_low → probs50 projetées sur 100 espèces
+        # prototypical_rare                        → probs100 (prototypes)
+        # rejected                                 → fusion 50/50 (meilleure estimation)
+        if methode in ("classifier_top50", "classifier_top50_low"):
+            # SOURCE : classifier uniquement — cohérent avec le routing.
+            # Projeter probs50 (50 espèces) → espace 100 espèces (rares = 0).
+            p_tax = np.zeros(len(idx_to_sp100))
+            for j50, j100 in idx50_to_idx100.items():
+                p_tax[j100] = probs50_np[i, j50]
+            # Normaliser explicitement : les 50 rares manquantes valent 0,
+            # la somme vaut exactement 1.0 mais on sécurise quand même.
+            total = p_tax.sum()
+            if total > 0:
+                p_tax /= total
+
+        elif methode == "prototypical_rare":
+            # SOURCE : prototypes uniquement — cohérent avec le routing.
+            # Déjà normalisé (softmax sur 100 espèces).
+            p_tax = probs100_np[i].copy()
+
+        else:  # rejected — aucun moteur n'a gagné, on fusionne équitablement
+            # SOURCE : fusion clf-50 + proto-100 à poids égaux.
+            p_tax = np.zeros(len(idx_to_sp100))
+            # Espèces communes : moyenne des deux moteurs
+            for j50, j100 in idx50_to_idx100.items():
+                p_tax[j100] = 0.5 * probs50_np[i, j50] + 0.5 * probs100_np[i, j100]
+            # Espèces rares (absentes du classifier) : moitié proto seulement
+            # idx100_covered est un set → test O(1), pas O(n) comme .values()
+            for j100 in range(len(idx_to_sp100)):
+                if j100 not in idx100_covered:
+                    p_tax[j100] = 0.5 * probs100_np[i, j100]
+            # Renormaliser pour que la somme = 1
+            total = p_tax.sum()
+            if total > 0:
+                p_tax /= total
+
+        # ── Calcul confiance taxonomique ──────────────────────────────────────
+        tax_row = taxon_confidence(p_tax, idx_to_sp100, tax_lookup, niveaux_tax)
+
+        row = {
+            "image":         Path(path).name,
+            "espece_pred":   espece,
+            "confiance":     round(conf, 4),
+            "methode":       methode,
+            "top1_common":   sp50,   "conf_common":  round(c50, 4),
+            "top2_common":   idx_to_sp50[top3_50.indices[1].item()],
+            "top3_common":   idx_to_sp50[top3_50.indices[2].item()],
+            "top1_proto":    sp100,  "conf_proto":   round(c_prot, 4),
+            "top2_proto":    idx_to_sp100[top3_prot.indices[1].item()],
+            "top3_proto":    idx_to_sp100[top3_prot.indices[2].item()],
+        }
+        row.update(tax_row)
+        results.append(row)
+
+    return pd.DataFrame(results), pd.DataFrame(errors) if errors else pd.DataFrame()
+
+
+def print_summary(df):
+    """Affiche un résumé de l'inférence."""
+    print("\n" + "-" * 60)
+    print("RÉSUMÉ INFÉRENCE")
+    print("-" * 60)
+    print(f"  Images traitées   : {len(df)}")
+
+    if len(df) == 0:
+        return
+
+    for m in ["classifier_top50", "classifier_top50_low", "prototypical_rare", "rejected"]:
+        s = df[df["methode"] == m]
+        if len(s) == 0:
+            continue
+        pct = len(s) / len(df) * 100
+        if m == "rejected":
+            print(f"  {m:<25s}: {len(s):4d} ({pct:.1f}%) — non classifiées")
+        else:
+            conf_moy = s["confiance"].mean()
+            print(f"  {m:<25s}: {len(s):4d} ({pct:.1f}%) — conf. moy. {conf_moy:.2f}")
+
+    accepted = df[df["methode"] != "rejected"]
+    print(f"\n  Taux acceptées    : {len(accepted)/len(df)*100:.1f}%")
+
+    print(f"\n  Top 10 espèces prédites :")
+    for sp, n in accepted["espece_pred"].value_counts().head(10).items():
+        print(f"    {sp:<40s} : {n:3d} images")
+
+
+def print_taxonomy_legend():
+    """Affiche la légende complète de l'analyse taxonomique hiérarchique."""
+    print("""
+____________________________________________________________
+LÉGENDE — CONFIANCE TAXONOMIQUE HIÉRARCHIQUE
+____________________________________________________________
+
+COLONNES
+  Espèce      : confiance de la prédiction finale (selon le routing)
+  Genre       : confiance agrégée au niveau genre
+  Famille     : confiance agrégée au niveau famille
+  Ordre       : confiance agrégée au niveau ordre
+  Classe      : confiance agrégée au niveau classe
+
+COMMENT LIRE LES VALEURS
+  83% Fucus       → confiance agrégée différente du niveau précédent
+  ↑96% Muricidae  → monte par rapport au niveau précédent
+                    (plusieurs espèces du même taxon se cumulent)
+  =               → identique au niveau précédent (±0.5%)
+                    pas d'information nouvelle à ce niveau
+  —               → taxon absent du référentiel taxonomique
+
+ALTERNATIVES
+  (X% Nucella)   → second taxon le plus probable à ce niveau
+                    affiché uniquement si > 10% de la conf. principale
+
+SOURCE DES PROBABILITÉS
+  [clf-50]        → classifier entraîné sur les 50 espèces communes
+                    (décision : classifier_top50 ou classifier_top50_low)
+  [proto-100]     → prototypes BioCLIP sur les 100 espèces (communes + rares)
+                    (décision : prototypical_rare)
+  [fusion]        → image rejetée, combinaison clf-50 + proto-100
+
+INTERPRÉTATION
+  Un ↑ à un niveau signifie que plusieurs espèces candidates
+  appartiennent au même taxon — la classification est d'autant
+  plus fiable à ce niveau même si l'espèce exacte est incertaine.
+
+  Exemple :
+    70% Ocenebra erinaceus  → espèce incertaine
+    = (25% Nucella)         → hésitation entre deux genres
+    ↑96% Muricidae          → mais les deux sont Muricidae : famille fiable
+
+SOURCE DES PROBABILITÉS — RÈGLE v6
+  La source taxonomique est COHÉRENTE avec le routing :
+  [clf-50]    → classifier_top50 ou top50_low : probs50 projetées sur 100,
+                rares = 0, normalisées. Aucune contamination des prototypes.
+  [proto-100] → prototypical_rare : probs100 directement.
+                Aucune contamination du classifier.
+  [fusion]    → rejected : 50% clf + 50% proto pour communes,
+                50% proto seul pour rares, renormalisé.
+
+  Conséquence : pour une image clf-50 à 87% espèce, la famille peut être
+  basse (ex. 45%) uniquement parce que le classifier lui-même hésite entre
+  espèces de familles différentes — sans pollution des prototypes.
+
+UTILISATION
+  python infer_local_v6.py \
+    --images     ./photos/ \
+    --prototypes models/prototypes_v4.pt \
+    --classifier models/best_model_top50.pth \
+    --output     resultats.csv \
+    --taxonomy   export_biolit_enriched_complete.csv
+============================================================
+""")
+
+
+def main():
+    parser = argparse.ArgumentParser(description="Inférence locale Hybride V3 Proto-CLIP")
+    parser.add_argument("--images",     required=True,  help="Dossier contenant les .webp")
+    parser.add_argument("--prototypes", required=True,  help="Chemin vers prototypes_v3_*.pt")
+    parser.add_argument("--classifier", required=True,  help="Chemin vers best_model_top50_*.pth")
+    parser.add_argument("--output",     default="resultats_inference_v3.csv",
+                                                        help="Fichier CSV de sortie")
+    parser.add_argument("--batch",      type=int, default=32, help="Batch size (défaut 32)")
+    parser.add_argument("--ext",        default="webp",  help="Extension images (défaut webp)")
+    parser.add_argument("--taxonomy",   default=None,
+                        help="Chemin vers export_biolit_enriched_complete.csv — active la "
+                             "confiance par niveau taxonomique cohérente avec le routing")
+    parser.add_argument("--help-taxonomy", action="store_true",
+                        help="Affiche la légende de l'analyse taxonomique et quitte")
+    args = parser.parse_args()
+
+    if args.help_taxonomy:
+        print_taxonomy_legend()
+        return
+
+    device = "cuda" if torch.cuda.is_available() else "cpu"
+    print(f"Device : {device}")
+
+    # Lister les images
+    images_dir  = Path(args.images)
+    image_paths = sorted(images_dir.glob(f"*.{args.ext}"))
+    # Aussi chercher .jpg/.jpeg/.png au cas où
+    if len(image_paths) == 0:
+        image_paths = sorted(images_dir.glob("*.jpg")) + \
+                      sorted(images_dir.glob("*.jpeg")) + \
+                      sorted(images_dir.glob("*.png"))
+    print(f"Images trouvées : {len(image_paths)} .{args.ext}")
+
+    if len(image_paths) == 0:
+        print(f"Aucune image .{args.ext} dans {images_dir}")
+        return
+
+    # Charger modèles
+    models = load_models(args.prototypes, args.classifier, device)
+
+    # ── Chargement taxonomie ──────────────────────────────────────────────────
+    if args.taxonomy:
+        tax_path = Path(args.taxonomy)
+        if not tax_path.exists():
+            print(f"Taxonomie introuvable : {args.taxonomy}")
+            infer_images._taxonomy = {}
+            infer_images._niveaux  = []
+        else:
+            import numpy as np
+            df_tax = pd.read_csv(tax_path)
+            espece_candidates = ["espece", "Nom scientifique - observation",
+                                 "nom_scientifique", "species"]
+            espece_col = next((c for c in espece_candidates if c in df_tax.columns), None)
+            if espece_col:
+                if espece_col != "espece":
+                    df_tax = df_tax.rename(columns={espece_col: "espece"})
+                niveaux_tax = [c for c in ["genre", "famille", "ordre", "classe", "embranchement"]
+                               if c in df_tax.columns]
+                df_tax = (df_tax[["espece"] + niveaux_tax]
+                          .dropna(subset=["espece"])
+                          .drop_duplicates("espece"))
+                tax_lookup = {
+                    row["espece"]: {
+                        niv: row[niv] for niv in niveaux_tax if pd.notna(row.get(niv))
+                    }
+                    for _, row in df_tax.iterrows()
+                }
+                infer_images._taxonomy = tax_lookup
+                infer_images._niveaux  = niveaux_tax
+                print(f"Taxonomie : {len(tax_lookup)} espèces · niveaux {niveaux_tax}")
+            else:
+                print(f"Colonne espèce introuvable dans {args.taxonomy}")
+                infer_images._taxonomy = {}
+                infer_images._niveaux  = []
+    else:
+        infer_images._taxonomy = {}
+        infer_images._niveaux  = []
+
+    # Inférence
+    df_results, df_errors = infer_images(image_paths, models, device, args.batch)
+
+    # Résumé
+    print_summary(df_results)
+
+    # ── Affichage confiance taxonomique ───────────────────────────────────────
+    if infer_images._niveaux and len(df_results) > 0:
+        accepted = df_results[df_results["methode"] != "rejected"]
+        if len(accepted) > 0:
+            print("\n" + "=" * 60)
+            print("CONFIANCE PAR NIVEAU TAXONOMIQUE")
+            print("=" * 60)
+            print(f"  (moyenne sur {len(accepted)} images acceptées)")
+            print(f"  Probas utilisées : classifier→50 espèces, prototypes→100 espèces\n")
+            print(f"  {'Niveau':<18} {'Conf. moy.':>12} {'Taxon le + fréquent'}")
+            print(f"  {'─'*60}")
+            print(f"  {'Espèce':<18} {accepted['confiance'].mean():>11.1%}  "
+                  f"{accepted['espece_pred'].value_counts().index[0]}")
+            for niv in infer_images._niveaux:
+                cc, cp = f"conf_{niv}", f"pred_{niv}"
+                if cc in accepted.columns:
+                    moy  = accepted[cc].mean()
+                    top1 = accepted[cp].value_counts().index[0] if cp in accepted.columns else "?"
+                    print(f"  {niv.capitalize():<18} {moy:>11.1%}  {top1}")
+
+            print(f"\n  Détail par image :")
+            print(f"  {'Image':<32} {'Espèce':>28} {'Genre':>12} {'Famille':>12} {'Ordre':>12} {'Classe':>12} {'Source'}")
+            print(f"  {'─'*115}")
+
+            def fmt_level(val_cur, val_prev, pred_cur, alt_taxon, alt_conf):
+                """
+                Formate la confiance d'un niveau en comparant au niveau précédent.
+
+                val_cur  : confiance du niveau actuel (ex: famille = 96%)
+                val_prev : confiance du niveau précédent (ex: genre = 70%)
+                pred_cur : nom du taxon prédit (ex: "Muricidae")
+                alt_taxon: taxon alternatif (ex: "Trochidae")
+                alt_conf : confiance de l'alternatif (ex: 0.08)
+
+                Règles d'affichage :
+                  - Même valeur que val_prev (diff < 0.5%) → "  ="  (pas d'info nouvelle)
+                  - Monte vs val_prev                       → "↑83% Fucaceae"
+                  - Descend vs val_prev                     → " 70% Ocenebra"
+                  + Si alternative significative (>10% de val_cur) → "+ alt%"
+                """
+                if not pd.notna(val_cur):
+                    return "  —"
+
+                diff = val_cur - val_prev if pd.notna(val_prev) else 0
+
+                if abs(diff) < 0.005:
+                    # Même valeur → = mais on affiche quand même l'alternative si existe
+                    cell = "  ="
+                    if alt_taxon and pd.notna(alt_conf) and val_cur > 0 and alt_conf > 0.10 * val_cur:
+                        cell += f" ({alt_conf:.0%} {alt_taxon})"
+                elif diff > 0:
+                    # Monte → nouvelle info, agrégation utile
+                    cell = f"↑{val_cur:.0%} {pred_cur}"
+                    if alt_taxon and pd.notna(alt_conf) and val_cur > 0 and alt_conf > 0.10 * val_cur:
+                        cell += f" ({alt_conf:.0%} {alt_taxon})"
+                else:
+                    # Descend (rare)
+                    cell = f" {val_cur:.0%} {pred_cur}"
+                    if alt_taxon and pd.notna(alt_conf) and val_cur > 0 and alt_conf > 0.10 * val_cur:
+                        cell += f" ({alt_conf:.0%} {alt_taxon})"
+                return cell
+
+            for _, r in accepted.iterrows():
+                img     = str(r["image"])[:30]
+                sp      = str(r["espece_pred"])[:26]
+                conf_sp = float(r["confiance"])
+
+                c_genre = r.get("conf_genre")
+                c_fam   = r.get("conf_famille")
+                c_ord   = r.get("conf_ordre")
+                c_cls   = r.get("conf_classe")
+
+                src = {"classifier_top50":     "clf-50",
+                       "classifier_top50_low": "clf-50",
+                       "prototypical_rare":    "proto-100"}.get(r["methode"], "fusion")
+
+                # Espèce : toujours affichée
+                sp_cell = f"{conf_sp:.0%} {sp}"
+
+                # Chaque niveau comparé au précédent
+                genre_cell = fmt_level(c_genre, conf_sp,
+                                       r.get("pred_genre"),
+                                       r.get("pred_genre_2"),   r.get("conf_genre_2"))
+                fam_cell   = fmt_level(c_fam,   c_genre,
+                                       r.get("pred_famille"),
+                                       r.get("pred_famille_2"), r.get("conf_famille_2"))
+                ord_cell   = fmt_level(c_ord,   c_fam,
+                                       r.get("pred_ordre"),
+                                       r.get("pred_ordre_2"),   r.get("conf_ordre_2"))
+                cls_cell   = fmt_level(c_cls,   c_ord,
+                                       r.get("pred_classe"),
+                                       r.get("pred_classe_2"),  r.get("conf_classe_2"))
+
+                print(f"  {img:<32} {sp_cell:>28} {genre_cell:>12} {fam_cell:>12} {ord_cell:>12} {cls_cell:>12} [{src}]")
+
+    # ── Sauvegarde ────────────────────────────────────────────────────────────
+    output_path = Path(args.output)
+    df_results.to_csv(output_path, index=False)
+    print(f"\nRésultats : {output_path} ({len(df_results)} lignes)")
+    if infer_images._niveaux:
+        print(f"   Colonnes taxonomiques : pred/conf par niveau + alternative _2")
+
+    if len(df_errors) > 0:
+        err_path = output_path.with_suffix(".errors.csv")
+        df_errors.to_csv(err_path, index=False)
+        print(f"{len(df_errors)} erreurs → {err_path}")
+
+
+if __name__ == "__main__":
+    main()
