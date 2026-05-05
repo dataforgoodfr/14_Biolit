@@ -235,3 +235,113 @@ def extract_crop_data_from_label_studio(project_title: str) -> pl.DataFrame:
     df=pl.DataFrame(rows)
 
     return df
+
+
+import os
+import polars as pl
+from label_studio_sdk import LabelStudio
+
+def extract_no_crops_data_from_label_studio(project_title: str) -> pl.DataFrame:
+    """
+    Extraction brute des tâches Label Studio (aucun filtrage métier) Projet No Crops.
+    """
+    api_key = os.getenv("LABEL_STUDIO_API_KEY_DATAFORGOOD")
+    url = os.getenv("LABEL_STUDIO_URL")
+
+    client = LabelStudio(base_url=url, api_key=api_key)
+
+    # -------------------------
+    # Récupération projet
+    # -------------------------
+    projects = client.projects.list()
+    project_id = next((p.id for p in projects if p.title == project_title), None)
+
+    if project_id is None:
+        return pl.DataFrame()
+
+    # -------------------------
+    # Récupération des tasks
+    # -------------------------
+    tasks = client.tasks.list(project=project_id)
+
+    rows = []
+
+    for task in tasks:
+        annotation = task.annotations[0] if task.annotations else None
+
+        if not annotation:
+            continue
+
+        results = annotation.get("result", [])
+
+        annotator = annotation.get("created_username")
+        if annotator:
+            annotator = annotator.split(",")[0].strip()
+        else:
+            annotator = annotation.get("completed_by")
+
+        annotated_at = annotation.get("created_at")
+
+        commentaire = None
+        crops = []
+
+        # -------------------------
+        # Parsing résultats
+        # -------------------------
+        for r in results:
+            from_name = r.get("from_name")
+            value = r.get("value", {})
+
+            # commentaire
+            if from_name == "commentaire" and r.get("type") == "textarea":
+                commentaire = value.get("text", [None])[0]
+
+            # crops (rectangle)
+            if r.get("type") == "rectanglelabels":
+                label = value.get("rectanglelabels", [None])[0]
+
+                crops.append({
+                    "x": value.get("x"),
+                    "y": value.get("y"),
+                    "width": value.get("width"),
+                    "height": value.get("height"),
+                    "label": label,
+                    "original_width": r.get("original_width"),
+                    "original_height": r.get("original_height"),
+                })
+
+        # -------------------------
+        # 1 ligne = 1 crop
+        # -------------------------
+        for idx, crop in enumerate(crops):
+            rows.append({
+                "task_id": task.id,
+                "id_observation": task.data.get("id_observation"),
+                "image": task.data.get("image"),
+                 # -------------------------
+                # Etats tâche
+                # -------------------------
+                "task_created_date": getattr(task, "created_at", None),
+                # -------------------------
+
+                # crop
+                "crop_index": idx,
+                "x": crop["x"],
+                "y": crop["y"],
+                "width": crop["width"],
+                "height": crop["height"],
+                "label": crop["label"],
+                "original_width": crop["original_width"],
+                "original_height": crop["original_height"],
+
+                # annotation
+                "annotator": annotator,
+                "annotated_at": annotated_at,
+                "commentaire": commentaire,
+            })
+
+    df = pl.DataFrame(rows)
+    return df
+    
+    
+    
