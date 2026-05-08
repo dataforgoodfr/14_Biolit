@@ -3,6 +3,7 @@ import polars as pl
 from sqlalchemy import create_engine, text
 import pandas as pd
 import structlog
+from typing import Dict
 from dotenv import load_dotenv
 LOGGER = structlog.get_logger()
 load_dotenv()
@@ -330,3 +331,40 @@ def insert_taxonomy_predictions(df: pl.DataFrame, engine) -> None:
                     best_score   = EXCLUDED.best_score
             """), row)
     LOGGER.info("ml_taxonomy: %d lignes insérées", len(rows))
+    
+
+def get_observation_image_path(engine,
+                               id_obs:int,
+                               table_name:str) -> Dict :
+    
+    """
+    Récupère le path S3 associé à une observation
+    puis retourne :
+    {
+        "bucket": ...,
+        "object_key": ...
+    }
+    """
+    
+    query=f"""
+      SELECT path_s3 FROM {table_name}
+        WHERE  CAST(id_observation AS BIGINT)={id_obs};
+    """
+    df = pl.read_database(query=query, connection=engine)
+
+    if df.is_empty():
+        LOGGER.info(f"No IMAGE for this {id_obs}")
+        return None
+    
+    # récupération string réelle
+    s3_path = df["path_s3"][0]
+    
+    # suppression prefix s3://
+    sans_prefix = s3_path[5:]  
+
+    # split bucket / key
+    bucket_name, rest = sans_prefix.split("/", 1)
+        
+    return { 
+            "bucket": bucket_name,
+            "rest": rest }
