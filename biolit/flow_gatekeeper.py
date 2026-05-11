@@ -70,3 +70,85 @@ def filter_crops_for_classification(df_crops: pl.DataFrame, engine) -> pl.DataFr
         return df_crops
 
     return df_crops.filter(~pl.col("id_observation").is_in(classified["id_observation"]))
+
+
+def filter_processed_no_crop_annotations( df: pl.DataFrame, engine) -> pl.DataFrame:
+        """
+        Filtre les annotations NO_CROP déjà traitées.
+
+        Vérifie :
+        - bd_finale (id_observation)
+        - taxonomy_queue (crop_id)
+        """
+        # =========================
+        # Récupération BD finale
+        # =========================
+        query_finale = """
+            SELECT id_observation
+            FROM bd_finale
+        """
+
+        df_finale = pl.read_database(
+            query=query_finale,
+            connection=engine
+        )
+
+        # =========================
+        # Récupération taxonomy queue
+        # =========================
+        query_taxo = """
+            SELECT crop_id
+            FROM taxonomy_queue
+        """
+
+        df_taxo = pl.read_database(
+            query=query_taxo,
+            connection=engine
+        )
+
+        # =========================
+        # Filtre observations finales
+        # =========================
+        if not df_finale.is_empty():
+
+            df = df.filter(
+                ~pl.col("id_observation").is_in(
+                    df_finale["id_observation"]
+                )
+            )
+
+        # =========================
+        # Filtre crops déjà envoyés ML
+        # =========================
+        if (
+            "crop_id" in df.columns
+            and not df_taxo.is_empty()
+        ):
+
+            df = df.filter(
+                ~pl.col("crop_id").is_in(
+                    df_taxo["crop_id"]
+                )
+            )
+
+        return df
+    
+def filter_processed_crop_annotations( df: pl.DataFrame,engine):
+        query = """
+            SELECT id_observation
+            FROM bd_finale
+        """
+
+        existing = pl.read_database(
+            query=query,
+            connection=engine
+        )
+
+        if existing.is_empty():
+            return df
+
+        return df.filter(
+            ~pl.col("id_observation").is_in(
+                existing["id_observation"]
+            )
+        )
