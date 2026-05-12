@@ -2,6 +2,8 @@ import requests
 import polars as pl
 import structlog
 import re
+import cloudscraper
+import os
 import os
 from dotenv import load_dotenv
 load_dotenv()
@@ -15,14 +17,17 @@ def fetch_biolit_from_api():
 
     url = os.getenv("BIOLIT_API_URL")
 
-    response = requests.get(url)
+    scraper = cloudscraper.create_scraper()
+
+    response = scraper.get(url)
+
     response.raise_for_status()
 
     data = response.json()
 
     print(f"{len(data)} observations récupérées")
-    return data
 
+    return data
 # ------------------------------
 # RENAME OF COLUMNS
 # ------------------------------

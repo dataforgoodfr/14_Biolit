@@ -5,7 +5,7 @@ import time
 import polars as pl
 from datetime import datetime
 from pathlib import Path
-
+import cloudscraper
 import yaml
 import torch
 import requests
@@ -15,6 +15,7 @@ from ultralytics import YOLO
 from .model_loader import load_model_weights
 from .utils.logger import setup_logger
 from biolit.s3 import create_s3_client, upload_image_s3
+from biolit.minio import create_minio_client, ensure_bucket_exists, upload_crop_image
 
 import ultralytics.nn.modules as modules
 import sys
@@ -30,10 +31,7 @@ sys.modules["ultralytics.nn.modules.transformer"] = modules
 
 torch.use_deterministic_algorithms(False)
 _orig = torch.load
-def _patched_torch_load(*a, **kw):
-    kw.setdefault('weights_only', False)
-    return _orig(*a, **kw)
-torch.load = _patched_torch_load
+torch.load = lambda *a, **kw: _orig(*a, **kw, weights_only=False)
 
 _LOGGER_NAME = "biolit.crop_inference"
 
@@ -119,10 +117,9 @@ def build_manifest(results: list, run_name: str, output_dir: str) -> list:
 
     return manifest
 
-def build_manifest_s3(results: list, run_name: str, client, bucket: str) -> tuple[pl.DataFrame, pl.DataFrame, dict]:
+def build_manifest_s3(results: list, run_name: str, client, bucket: str) -> tuple[pl.DataFrame, pl.DataFrame]:
     rows = []
-    rows_no_crops = []
-    crops_images = {}
+    rows_no_crops=[]
 
     for r in results:
         source_stem = Path(r.path).stem
@@ -134,7 +131,8 @@ def build_manifest_s3(results: list, run_name: str, client, bucket: str) -> tupl
         if len(r.boxes) == 0:
             object_name = f"{run_name}/no_crops/{source_stem}.jpg"
 
-            upload_image_s3(
+            # upload_image_s3
+            upload_crop_image(
                 client=client,
                 pil_img=img,
                 bucket_name=bucket,
@@ -160,28 +158,27 @@ def build_manifest_s3(results: list, run_name: str, client, bucket: str) -> tupl
             conf = float(box.conf)
 
             crop = img.crop((x1, y1, x2, y2)).convert("RGB")
-            id_crops = f"{source_stem}_{cls_name}"
+
             object_name = f"{run_name}/crops/{source_stem}_{cls_name}_{conf:.2f}.jpg"
 
-            upload_image_s3(
+            # upload_image_s3
+            upload_crop_image(
                 client=client,
                 pil_img=crop,
                 bucket_name=bucket,
                 object_name=object_name
             )
 
-            crops_images[id_crops] = crop
-
             rows.append({
                 "run_name": run_name,
                 "id_observation": source_stem,
-                "id_crops": id_crops,
+                "id_crops": f"{source_stem}_{cls_name}",
                 "regne": cls_name,
                 "confiance": round(conf, 4),
                 "path_s3": f"s3://{bucket}/{object_name}",
             })
 
-    return pl.DataFrame(rows), pl.DataFrame(rows_no_crops), crops_images
+    return pl.DataFrame(rows), pl.DataFrame(rows_no_crops)
 
 def print_results(model: YOLO, results: list) -> None:
     logger = logging.getLogger(_LOGGER_NAME)
@@ -236,9 +233,11 @@ def run_predict(source: str, config_path: str, run_name: str, log_level: str = "
     print_results(model, results)
 
     try:
-        client = create_s3_client()
+        # client = create_s3_client()
+        client=create_minio_client()
+        ensure_bucket_exists(client,"biolit-uploads")
 
-        df_crops, df_no_crops, crops_images = build_manifest_s3(
+        df = build_manifest_s3(
             results,
             run_name=run_name,
             client=client,
@@ -251,9 +250,9 @@ def run_predict(source: str, config_path: str, run_name: str, log_level: str = "
     elapsed = time.perf_counter() - t0
     logger.info(
         "Run terminé | images=%d | crops=%d | durée=%.2fs",
-        len(results), len(df_crops), elapsed,
+        len(results), len(df), elapsed,
     )
-    return df_crops, df_no_crops, crops_images
+    return df
 
 def download_all_images(df, tmp_dir: str):
     tmp_dir = Path(tmp_dir)
@@ -264,8 +263,10 @@ def download_all_images(df, tmp_dir: str):
         url = row["photos"]
 
         file_path = tmp_dir / f"{id_obs}.jpg"
-
-        response = requests.get(url, stream=True)
+        
+        scraper = cloudscraper.create_scraper()
+        response = scraper.get(url,stream=True)
+        # response = requests.get(url, stream=True)
         response.raise_for_status()
 
         with open(file_path, "wb") as f:
@@ -277,15 +278,15 @@ def download_all_images(df, tmp_dir: str):
     return paths
 
 
-def flow_ml_crops(df: pl.DataFrame, config: Path, run_name: str) -> tuple[pl.DataFrame, pl.DataFrame, dict]:
+def flow_ml_crops(df: pl.DataFrame, config: Path, run_name: str):
     with tempfile.TemporaryDirectory() as tmp_dir:
         download_all_images(df, tmp_dir)
-        df_crops, df_no_crops, crops_images = run_predict(
+        df_crops, df_no_crops = run_predict(
             source=tmp_dir,
             config_path=config,
             run_name=run_name
         )
-    return df_crops, df_no_crops, crops_images
+    return df_crops, df_no_crops
 
 def main():
     parser = argparse.ArgumentParser(description="Inférence YOLOv8 Biolit — crop + manifeste")
