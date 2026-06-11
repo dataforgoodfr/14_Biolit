@@ -20,7 +20,7 @@ def fetch_biolit_from_api():
 
     data = response.json()
 
-    print(f"{len(data)} observations récupérées")
+    LOGGER.info("Nombre d'observations récupérées :", value=len(data))
     return data
 
 # ------------------------------

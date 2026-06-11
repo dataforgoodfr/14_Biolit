@@ -18,7 +18,7 @@ from biolit.label_studio import (
     push_tasks_label_studio_no_crops,
     push_tasks_label_studio_crops,
 )
-from biolit.s3 import create_s3_client, upload_parquet_s3
+from biolit.s3 import create_s3_client, upload_parquet_s3, _read_file_s3
 from ml.crop_inference.predict import flow_ml_crops
 from ml.classification.pipeline_classification import flow_ml_classification
 import datetime
@@ -104,13 +104,26 @@ def run_pipeline():
         parquet_key = f"{dossier_inference}/taxonomy/predictions.parquet"
         upload_parquet_s3(s3_client, df_taxonomy, "biolit-uploads", parquet_key)
 
+        # Ajout des lien Doris
+        doris_file = _read_file_s3(s3_client, "biolit-uploads", "lien_doris/lien_doris.csv")
+        df_doris = pl.read_parquet(doris_file)
+        LOGGER.info("Fichier avec les liens Doris Lu")
+        df_doris = df_doris.with_columns(pl.col("nom_scientifique").str.to_lowercase())
+        df_taxonomy = df_taxonomy.with_columns(pl.col("species_name").str.to_lowercase())
+        # Enrichissement fichier taxo avec les liens Doris
+        df_taxonomy = df_taxonomy.join(df_doris, left_on="species_name", right_on="nom_scientifique", how="left")
+        df_taxonomy = df_taxonomy.with_columns(
+            pl.col("id_observation").cast(pl.Int64)
+        ).join(
+            df_ml_to_process, on="id_observation"
+        )
         push_tasks_label_studio_crops("Biolit Crops", df_taxonomy)
         LOGGER.info("Classification taxonomique DONE ✅")
     else:
         LOGGER.info("Aucun crop à classifier → skip taxonomie ✅")
 
     # -------------------------
-    # 6. ENVOIE DES IMAGES A LABEL STUDIO
+    # 6. ENVOIE DES IMAGES NON CROPPEES A LABEL STUDIO
     # -------------------------
     LOGGER.info("Connection to Label Studio...")
     if len(df_no_crops) == 0:
@@ -124,7 +137,6 @@ def run_pipeline():
 
         push_tasks_label_studio_no_crops("Biolit No Crops", df_no_crops)
         LOGGER.info("LABEL STUDIO DONE ✅")
-
 
 
     # -------------------------

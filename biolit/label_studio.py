@@ -1,7 +1,7 @@
 import os
 import polars as pl
-from dotenv import load_dotenv
 import structlog
+from dotenv import load_dotenv
 from label_studio_sdk import LabelStudio
 
 LOGGER = structlog.get_logger()
@@ -31,14 +31,34 @@ def push_tasks_label_studio_crops(project_title: str, df: pl.DataFrame):
             "data": {
                 "image": row["path_s3"],
                 "id_crops": row["id_crops"],
-                "id_observation": row.get("id_observation", ""),
-                "regne_yolo": row.get("regne_yolo", ""),
-                "confiance_yolo": row.get("confiance_yolo", ""),
-                "best_label": row.get("best_label", ""),
-                "best_level": row.get("best_level", ""),
-                "best_score": row.get("best_score", ""),
-                "famille": row.get("famille", ""),
-                "species_name": row.get("species_name", ""),
+                "id_observation": row.get("id_observation") or "",
+                "regne_yolo": row.get("regne_yolo") or "",
+                "confiance_yolo": row.get("confiance_yolo") or "",
+                "best_label": row.get("best_label") or "",
+                "best_level": row.get("best_level") or "",
+                "best_score": row.get("best_score") or "",
+                "regne": row.get("regne") or "",
+                "phylum": row.get("phylum") or "",
+                "classe": row.get("classe") or "",
+                "ordre": row.get("ordre") or "",
+                "famille": row.get("famille") or "",
+                "species_name": row.get("species_name") or "Pas d'espèce identifiée par la ML",
+                "region": row.get("reg_nom") or "",
+                "commune": row.get("nearest_commune") or "",
+                "latitude": row.get("latitude") or "",
+                "longitude": row.get("longitude") or "",
+                "departement": row.get("dep_nom") or "",
+                "geo_map_html": (
+                    f'<a href="https://www.openstreetmap.org/?mlat={row["latitude"]}&mlon={row["longitude"]}&zoom=12" target="_blank">Voir la carte</a>'
+                    if row["latitude"] and row["longitude"]
+                    else "<em>Localisation non disponible</em>"
+                ),
+                "lien_doris": row["lien_doris"] or "",
+                "lien_doris_html": (
+                    f'<a href="{row["lien_doris"]}" target="_blank">Voir sur DORIS</a>'
+                    if row["lien_doris"]
+                    else "<em>Aucun lien disponible</em>"
+                ),
             }
         })
 
