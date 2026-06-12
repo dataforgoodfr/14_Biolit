@@ -1,7 +1,7 @@
 import os
 import polars as pl
-import structlog
 from dotenv import load_dotenv
+import structlog
 from label_studio_sdk import LabelStudio
 
 LOGGER = structlog.get_logger()
@@ -18,7 +18,6 @@ def push_tasks_label_studio_crops(project_title: str, df: pl.DataFrame):
     for project in projects:
         if project.title == project_title:
             project_id = project.id
-            LOGGER.info(f"Projet ID={project.id}, Nom={project.title} exists")
             break
 
     if project_id is None:
@@ -80,7 +79,6 @@ def push_tasks_label_studio_no_crops(project_title: str, df: pl.DataFrame):
     for project in projects:
         if project.title == project_title:
             project_id = project.id
-            LOGGER.info(f"Projet ID={project.id}, Nom={project.title} exists")
             break
 
     if project_id is None:
@@ -111,10 +109,9 @@ def push_tasks_label_studio_no_crops(project_title: str, df: pl.DataFrame):
         request=tasks,
         return_task_ids=True,
     )
-    LOGGER.info("The tasks have been successfully imported ; number of tasks :", value=len(df))
+    LOGGER.info("No crops tasks have been successfully imported ; number of tasks :", value=len(df))
 
-
-def delete_tasks_label_studio(project_title: str):
+def delete_tasks_label_studio(project_title: str, list_task: list):
     api_key = os.getenv("LABEL_STUDIO_API_KEY")
     url = "http://label-studio:8080"
 
@@ -125,7 +122,6 @@ def delete_tasks_label_studio(project_title: str):
     for project in projects:
         if project.title == project_title:
             project_id = project.id
-            LOGGER.info(f"Projet ID={project.id}, Nom={project.title} exists")
             break
 
     if project_id is None:
@@ -142,9 +138,9 @@ def delete_tasks_label_studio(project_title: str):
         client.tasks.delete(task_id)
     LOGGER.info(f"{len(task_ids)} tasks deleted from project {project.id}")
 
-def extract_no_crop_data_from_label_studio(project_title: str) -> pl.DataFrame:
+def extract_crops_data_from_label_studio(project_title: str) -> pl.DataFrame:
     """
-    Extraction brute des tâches Label Studio (aucun filtrage métier).
+    Extraction brute des tâches Label Studio (aucun filtrage métier) Projet Crops.
     """
 
     api_key = os.getenv("LABEL_STUDIO_API_KEY_DATAFORGOOD")
@@ -152,19 +148,17 @@ def extract_no_crop_data_from_label_studio(project_title: str) -> pl.DataFrame:
 
     client = LabelStudio(base_url=url, api_key=api_key)
 
-    # -------------------------
-    # Récupération projet
-    # -------------------------
-    projets = client.projects.list()
+    projects = client.projects.list()
+    project_id = None
 
-    project_id = next(
-        (p.id for p in projets if p.title == project_title),
-        None
-    )
+    for project in projects:
+        if project.title == project_title:
+            project_id = project.id
+            break
 
     if project_id is None:
-        LOGGER.warning(f"Projet {project_title} introuvable")
-        return pl.DataFrame()
+        LOGGER.info(f"The project {project_title} does not exist.")
+        return
 
     # -------------------------
     # Récupération des tasks
@@ -174,8 +168,41 @@ def extract_no_crop_data_from_label_studio(project_title: str) -> pl.DataFrame:
     rows = []
 
     for task in tasks:
+        annotation = task.annotations[0]  if task.annotations else None
+        annotator = None
+        annotated_at = None
+        decision = None
+        espece_corrigee = None
+        commentaire = None
 
-        annotation = task.annotations[0] if task.annotations else None
+        if annotation and isinstance(annotation, dict):
+            # -------------------------
+            # Labels
+            # -------------------------
+            results = annotation.get("result", [])
+            for r in results:
+                input_type = r.get("from_name")
+                value = r.get("value", {})
+                if input_type == "decision":
+                    decision = value.get("choices", [None])[0]
+                elif input_type == "espece_corrigee":
+                    espece_corrigee = value.get("text", [None])[0]
+                elif input_type == "commentaire":
+                    commentaire = value.get("text", [None])[0]
+
+            # Annotateur
+            # -------------------------
+            created_username = annotation.get("created_username")
+
+            if created_username:
+                annotator = created_username.split(",")[0].strip()
+            else:
+                annotator = annotation.get("completed_by")
+
+            # -------------------------
+            # Metadata annotation
+            # -------------------------
+            annotated_at = annotation.get("created_at")
 
         rows.append({
             # -------------------------
@@ -183,32 +210,123 @@ def extract_no_crop_data_from_label_studio(project_title: str) -> pl.DataFrame:
             # -------------------------
             "task_id": task.id,
             "id_observation": task.data.get("id_observation"),
-            "image": task.data.get("image"),
-
+            "species_name": task.data.get('species_name'),
             # -------------------------
-            # Etats Label Studio
+            # Etats tâche
             # -------------------------
-            "completed": getattr(task, "is_labeled", None),
-            "cancelled": bool(getattr(task, "cancelled", False)),
-            "has_annotations": bool(task.annotations),
-
+            "task_created_date": getattr(task, "created_at", None),
             # -------------------------
-            # Annotation (si existe)
+            # Annotation
             # -------------------------
-            "annotated_by": getattr(annotation, "completed_by", None) if annotation else None,
-            "annotated_at": getattr(annotation, "created_at", None) if annotation else None,
-
-            # -------------------------
-            # Predictions (ML)
-            # -------------------------
-            "predictions": getattr(task, "predictions", None),
+            "annotator": annotator,
+            "annotated_at": annotated_at,
+            "decision": decision,
+            "espece_corrigee": espece_corrigee,
+            "commentaire": commentaire,
         })
 
     df = pl.DataFrame(rows)
-
-    LOGGER.info(
-        "Extraction brute Label Studio terminée",
-        nb_tasks=len(df)
-    )
-
     return df
+
+def extract_no_crops_data_from_label_studio(project_title: str) -> pl.DataFrame:
+    """
+    Extraction brute des tâches Label Studio (aucun filtrage métier) Projet No Crops.
+    """
+    api_key = os.getenv("LABEL_STUDIO_API_KEY_DATAFORGOOD")
+    url = os.getenv("LABEL_STUDIO_URL")
+
+    client = LabelStudio(base_url=url, api_key=api_key)
+
+    projects = client.projects.list()
+    project_id = None
+
+    for project in projects:
+        if project.title == project_title:
+            project_id = project.id
+            break
+
+    if project_id is None:
+        LOGGER.info(f"The project {project_title} does not exist.")
+        return
+
+    # -------------------------
+    # Récupération des tasks
+    # -------------------------
+    tasks = client.tasks.list(project=project_id)
+
+    rows = []
+
+    for task in tasks:
+        annotation = task.annotations[0] if task.annotations else None
+        if not annotation:
+            continue
+
+        results = annotation.get("result", [])
+        annotator = annotation.get("created_username")
+        if annotator:
+            annotator = annotator.split(",")[0].strip()
+        else:
+            annotator = annotation.get("completed_by")
+
+        annotated_at = annotation.get("created_at")
+
+        commentaire = None
+        crops = []
+
+        # -------------------------
+        # Parsing résultats
+        # -------------------------
+        for r in results:
+            from_name = r.get("from_name")
+            value = r.get("value", {})
+
+            # commentaire
+            if from_name == "commentaire" and r.get("type") == "textarea":
+                commentaire = value.get("text", [None])[0]
+
+            # espece & image
+            if from_name == "nom_espece" and r.get("type") == "textarea":
+                crops.append({
+                    "nom_espece": value.get("text", [None])[0],
+                    "x": value.get("x"),
+                    "y": value.get("y"),
+                    "width": value.get("width"),
+                    "height": value.get("height"),
+                    "original_width": r.get("original_width"),
+                    "original_height": r.get("original_height"),
+                })
+
+        # -------------------------
+        # 1 ligne = 1 crop
+        # -------------------------
+        for idx, crop in enumerate(crops):
+            rows.append({
+                # "task_id": task.id,
+                "crop_id" : f"{task.data.get("id_observation")}_{idx}",
+                "id_observation": task.data.get("id_observation"),
+                # -------------------------
+                # Etats tâche
+                # -------------------------
+                "task_created_date": getattr(task, "created_at", None),
+                # -------------------------
+
+                # crop
+                "crop_index": idx,
+                "x": crop["x"],
+                "y": crop["y"],
+                "width": crop["width"],
+                "height": crop["height"],
+                "original_width": crop["original_width"],
+                "original_height": crop["original_height"],
+                "nom_espece": crop["nom_espece"],
+
+                # annotation
+                "annotator": annotator,
+                "annotated_at": annotated_at,
+                "commentaire": commentaire,
+
+            })
+
+    df = pl.DataFrame(rows)
+    return df
+

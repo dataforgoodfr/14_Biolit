@@ -1,7 +1,7 @@
-import requests
 import polars as pl
 import structlog
 import re
+import requests
 import os
 from dotenv import load_dotenv
 load_dotenv()
@@ -12,7 +12,6 @@ LOGGER = structlog.get_logger()
 # FETCH API
 # ------------------------------
 def fetch_biolit_from_api():
-
     url = os.getenv("BIOLIT_API_URL")
 
     response = requests.get(url)
@@ -26,8 +25,6 @@ def fetch_biolit_from_api():
 # ------------------------------
 # RENAME OF COLUMNS
 # ------------------------------
-
-
 def normalize_column_name(col: str) -> str:
     """Convertit les noms API en snake_case propre FR"""
     col = col.lower()

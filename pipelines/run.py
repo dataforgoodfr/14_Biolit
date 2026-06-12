@@ -1,14 +1,16 @@
 from biolit.export_api import fetch_biolit_from_api, adapt_api_to_dataframe
 from biolit.create_table import (
-    prepare_dataframe_for_postgres,
-    insert_dataframe,
-    insert_enriched_dataframe,
     get_engine,
     create_table,
     create_enriched_table,
-    load_observations_from_db_for_ML,
+    create_db_finale_table,
+    create_taxonomy_queue_table,
+    prepare_dataframe_for_postgres,
+    insert_dataframe,
+    insert_enriched_dataframe,
     insert_crops_dataframe,
     insert_no_crops_dataframe,
+    load_observations_from_db_for_ML
 )
 from biolit.geoloc import geoloc_enrichie_data_biolit_db
 from biolit.flow_gatekeeper import(
@@ -17,8 +19,15 @@ from biolit.flow_gatekeeper import(
 from biolit.label_studio import (
     push_tasks_label_studio_no_crops,
     push_tasks_label_studio_crops,
+    extract_crops_data_from_label_studio,
+    extract_no_crops_data_from_label_studio
 )
-from biolit.s3 import create_s3_client, upload_parquet_s3, _read_file_s3
+from biolit.s3 import (
+    create_s3_client,
+    upload_parquet_s3,
+    _read_file_s3
+)
+#from biolit.label_studio_postprocessing import (process_no_crop_annotations)
 from ml.crop_inference.predict import flow_ml_crops
 from ml.classification.pipeline_classification import flow_ml_classification
 import datetime
@@ -68,8 +77,13 @@ def run_pipeline():
     # -------------------------
     # 3. FLOW ML CROPS
     # -------------------------
+    LOGGER.info("Creating tables for ML if not exist...")
+    create_db_finale_table(engine)
+    create_taxonomy_queue_table(engine)
+
     LOGGER.info("Récupération des données à traiter pour le ML")
     df_ml = load_observations_from_db_for_ML(engine)
+    # On filtre le df avec toutes les images qui sont déjà passées dans le flow
     df_ml_to_process = filter_observations_for_crop(df_ml, engine)
     nb_to_process = len(df_ml_to_process)
 
@@ -84,7 +98,7 @@ def run_pipeline():
 
     LOGGER.info("Lancement du Flow de ML Crop")
     config_name="ml/crop_inference/config.yaml"
-    df_crops, df_no_crops, crops_images = flow_ml_crops(df_ml_to_process, config_name, dossier_inference)
+    df_crops, df_no_crops, crops_images= flow_ml_crops(df_ml_to_process, config_name, dossier_inference)
     LOGGER.info("Cropping des images réalisées")
     LOGGER.info("Crops uploadés sur S3")
 
@@ -94,7 +108,7 @@ def run_pipeline():
     LOGGER.info("Table de Crops et No Crops mises à jours")
 
     # -------------------------
-    # 5. PASSAGE ML TAXONOMIE
+    # 4. PASSAGE ML TAXONOMIE EXPORT VERS LABEL STUDIO
     # -------------------------
     if len(crops_images) > 0:
         LOGGER.info("Lancement du Flow de Classification Taxonomique")
@@ -123,7 +137,7 @@ def run_pipeline():
         LOGGER.info("Aucun crop à classifier → skip taxonomie ✅")
 
     # -------------------------
-    # 6. ENVOIE DES IMAGES NON CROPPEES A LABEL STUDIO
+    # 5. ENVOIE DES IMAGES NON CROPPEES A LABEL STUDIO
     # -------------------------
     LOGGER.info("Connection to Label Studio...")
     if len(df_no_crops) == 0:
@@ -138,10 +152,19 @@ def run_pipeline():
         push_tasks_label_studio_no_crops("Biolit No Crops", df_no_crops)
         LOGGER.info("LABEL STUDIO DONE ✅")
 
+    # -------------------------
+    # 6. RECUPERATION DES INFOS DEPUIS LABEL STUDIO
+    # -------------------------
+    data_label_studio_crop = extract_crops_data_from_label_studio("Biolit Crops")
+    LOGGER.info(f"data collected from label studio projet Crops {data_label_studio_crop}")
+    data_label_studio_no_crops = extract_no_crops_data_from_label_studio("Biolit No Crops")
+    LOGGER.info(f"data collected from label studio projet No Crops {data_label_studio_no_crops}")
 
-    # -------------------------
-    # 7. RECUPERATION DES INFOS DEPUIS LABEL STUDIO
-    # -------------------------
+    """
+    # Insertion des données récupérées dans les tables postgresql
+    cro_db_finale=process_crop_annotations(data_label_studio_crop,dossier_inference,engine)
+    LOGGER.info(f"data collected from {cro_db_finale}")
+    """
 
 if __name__ == "__main__":
     run_pipeline()

@@ -160,3 +160,26 @@ def annotations_to_polars(all_annotations):
     df = pl.DataFrame(rows)
     LOGGER.info(df)
     return df
+
+def load_image_from_s3_mino(
+    s3_client,
+    bucket_name: str,
+    object_key: str
+) -> Image.Image:
+    """
+    Charge une image depuis S3/MinIO
+    et retourne un objet PIL.Image.
+    """
+
+    response = s3_client.get_object(
+        bucket_name,
+        object_key
+    )
+
+    image_data = response.read()
+
+    image = Image.open(
+        BytesIO(image_data)
+    ).convert("RGB")
+
+    return image
