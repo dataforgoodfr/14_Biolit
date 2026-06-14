@@ -6,10 +6,13 @@ from biolit.create_table import (
     create_db_finale_table,
     create_taxonomy_queue_table,
     prepare_dataframe_for_postgres,
+    prepare_db_finale_dataframe,
     insert_dataframe,
     insert_enriched_dataframe,
     insert_crops_dataframe,
     insert_no_crops_dataframe,
+    insert_db_finale_dataframe,
+    insert_taxonomy_queue_dataframe,
     load_observations_from_db_for_ML
 )
 from biolit.geoloc import geoloc_enrichie_data_biolit_db
@@ -155,16 +158,33 @@ def run_pipeline():
     # -------------------------
     # 6. RECUPERATION DES INFOS DEPUIS LABEL STUDIO
     # -------------------------
-    data_label_studio_crop = extract_crops_data_from_label_studio("Biolit Crops")
-    LOGGER.info(f"data collected from label studio projet Crops {data_label_studio_crop}")
-    data_label_studio_no_crops = extract_no_crops_data_from_label_studio("Biolit No Crops")
-    LOGGER.info(f"data collected from label studio projet No Crops {data_label_studio_no_crops}")
+    LOGGER.info("Récupération des annotations réalisées depuis le dernier run ...")
+    data_label_studio_crops = extract_crops_data_from_label_studio("Biolit Crops", datetime.datetime(2025, 1, 1), datetime.datetime(2027, 1, 1))
+    LOGGER.info("Data collected from label studio projet Crops")
+    data_label_studio_no_crops = extract_no_crops_data_from_label_studio("Biolit No Crops", datetime.datetime(2025, 1, 1), datetime.datetime(2027, 1, 1))
+    LOGGER.info("Data collected from label studio projet No Crops")
 
-    """
     # Insertion des données récupérées dans les tables postgresql
-    cro_db_finale=process_crop_annotations(data_label_studio_crop,dossier_inference,engine)
-    LOGGER.info(f"data collected from {cro_db_finale}")
-    """
+    data_label_studio_crops_filtered = prepare_db_finale_dataframe(data_label_studio_crops)
+    insert_db_finale_dataframe(data_label_studio_crops_filtered, engine)
+    LOGGER.info("Insertion db_finale terminée projet crops", rows_inserted=len(data_label_studio_crops_filtered))
+    data_label_studio_no_crops_filtered = prepare_db_finale_dataframe(data_label_studio_no_crops)
+    LOGGER.info("Insertion db_finale terminée projet no crops", rows_inserted=len(data_label_studio_no_crops_filtered))
+    insert_db_finale_dataframe(data_label_studio_no_crops_filtered, engine)
+
+    # Enregistrement données de crops pour réentrainnement
+    insert_taxonomy_queue_dataframe(data_label_studio_no_crops, engine)
+    LOGGER.info("Stockage données pour réentrainement projet, nombre de lignes stockées", rows_inserted=len(data_label_studio_no_crops))
+
+    # -------------------------
+    # 7. CLEANING : SUPPRESION TACHES LABEL STUDIO + SUPPRESSION IMAGES SUR S3
+    # -------------------------
+    LOGGER.info("Cleaning des tâches annotées depuis le précédent flow ...")
+    LOGGER.info("Cleaning du S3 ...")
+    LOGGER.info("Cleaning de LabelStudio ...")
+
+    LOGGER.info("Fin du Flow : succès ✅")
+
 
 if __name__ == "__main__":
     run_pipeline()

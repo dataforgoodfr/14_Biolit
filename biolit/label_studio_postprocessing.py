@@ -20,7 +20,7 @@ from biolit.flow_gatekeeper import(
 import structlog
 LOGGER = structlog.get_logger()
 
-def crop_image_from_url( image: Image.Image, x: float, y: float, width: float, height: float, original_width: int, original_height: int ) -> Image.Image:
+def crop_image_from_url(image: Image.Image, x: float, y: float, width: float, height: float, original_width: int, original_height: int ) -> Image.Image:
         """
         Crop une image à partir des coordonnées Label Studio (en %).
         """
@@ -195,7 +195,7 @@ def process_crop_annotations( df: pl.DataFrame,run_name: str,engine):
         Objectif :
         - filtrer les annotations déjà traitées
         - préparer les données pour insertion
-        dans Bd_finale
+        dans db_finale
         """
 
         LOGGER.info("Starting process_crop_annotations")
@@ -256,7 +256,7 @@ def process_crop_annotations( df: pl.DataFrame,run_name: str,engine):
             # =========================
             elif row["decision"] == "Corriger l'espèce":
 
-                nom_scientifique = row["espece_corigée"]
+                nom_scientifique = row["espece_corigee"]
                 validee = True
 
             # =========================

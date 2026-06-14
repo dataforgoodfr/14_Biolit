@@ -373,12 +373,13 @@ def create_db_finale_table(engine):
     with engine.begin() as conn:
         conn.execute(text("""
             CREATE TABLE IF NOT EXISTS db_finale (
-                id_observation BIGINT PRIMARY KEY,
+                id_crops TEXT PRIMARY KEY,
+                id_observation BIGINT,
                 nom_scientifique TEXT,
-                validee  BOOLEAN,
-                identifiable BOOLEAN,
                 annotateur  TEXT,
-                source  TEXT
+                source  TEXT,
+                validee  TEXT,
+                espece_identifiee TEXT
             );
         """))
 
@@ -396,15 +397,19 @@ def create_taxonomy_queue_table(engine):
                 y FLOAT,
                 width FLOAT,
                 height FLOAT,
-                label TEXT,
                 original_width INTEGER,
                 original_height INTEGER,
-                annotator TEXT,
-                annotated_at TIMESTAMP
+                nom_scientifique TEXT,
+                annotateur TEXT,
+                annotated_at TIMESTAMP,
+                commentaire TEXT,
+                source TEXT,
+                validee TEXT,
+                espece_identifiee TEXT
             );
         """))
 
-def insert_db_finale_dataframe(df, engine ):
+def insert_db_finale_dataframe(df, engine):
         """
         Insert les observations finales dans db_finale.
         """
@@ -417,35 +422,32 @@ def insert_db_finale_dataframe(df, engine ):
 
         query = text("""
             INSERT INTO db_finale (
+                id_crops,
                 id_observation,
                 nom_scientifique,
-                validee,
-                identifiable,
                 annotateur,
-                source
+                source,
+                validee,
+                espece_identifiee
             )
             VALUES (
+                :id_crops,
                 :id_observation,
                 :nom_scientifique,
-                :validee,
-                :identifiable,
                 :annotateur,
-                :source
+                :source,
+                :validee,
+                :espece_identifiee
             )
-            ON CONFLICT (id_observation)
+            ON CONFLICT (id_crops)
             DO NOTHING
         """)
 
         with engine.begin() as conn:
             conn.execute(query, rows)
 
-        LOGGER.info(
-            "Insertion db_finale terminée",
-            rows_inserted=len(rows)
-        )
 
-
-def insert_taxonomy_queue_dataframe( df,engine ):
+def insert_taxonomy_queue_dataframe(df, engine):
         """
         Insert les crops manuels à envoyer
         vers ML taxonomy.
@@ -467,11 +469,15 @@ def insert_taxonomy_queue_dataframe( df,engine ):
                 y,
                 width,
                 height,
-                label,
                 original_width,
                 original_height,
-                annotator,
-                annotated_at
+                nom_scientifique,
+                annotateur,
+                annotated_at,
+                commentaire,
+                source,
+                validee,
+                espece_identifiee
             )
             VALUES (
                 :id_crops,
@@ -482,11 +488,15 @@ def insert_taxonomy_queue_dataframe( df,engine ):
                 :y,
                 :width,
                 :height,
-                :label,
                 :original_width,
                 :original_height,
-                :annotator,
-                :annotated_at
+                :nom_scientifique,
+                :annotateur,
+                :annotated_at,
+                :commentaire,
+                :source,
+                :validee,
+                :espece_identifiee
             )
             ON CONFLICT (id_crops)
             DO NOTHING
@@ -503,25 +513,27 @@ def insert_taxonomy_queue_dataframe( df,engine ):
 def prepare_db_finale_dataframe(df: pl.DataFrame ) -> pl.DataFrame:
         """
         Prépare le dataframe avant insertion
-        dans Bd_finale.
+        dans db_finale.
         """
 
         return (
             df
             .select([
+                "id_crops",
                 "id_observation",
                 "nom_scientifique",
-                "validee",
-                "identifiable",
                 "annotateur",
-                "source"
+                "source",
+                "validee",
+                "espece_identifiee"
             ])
             .with_columns([
+                pl.col("id_crops").cast(pl.Utf8),
                 pl.col("id_observation").cast(pl.Int64),
                 pl.col("nom_scientifique").cast(pl.Utf8),
-                pl.col("validee").cast(pl.Boolean),
-                pl.col("identifiable").cast(pl.Boolean),
                 pl.col("annotateur").cast(pl.Utf8),
                 pl.col("source").cast(pl.Utf8),
+                pl.col("validee").cast(pl.Utf8),
+                pl.col("espece_identifiee").cast(pl.Utf8),
             ])
         )
