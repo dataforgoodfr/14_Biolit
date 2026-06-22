@@ -119,11 +119,10 @@ def load_image_from_s3(s3_client,
         Bucket=bucket_name,
         Key=object_key
     )
-    
+
     image_data=response["Body"].read()
-    
+
     image=Image.open(BytesIO(image_data)).convert("RGB")
-    
+
     return image
-    
-    
+

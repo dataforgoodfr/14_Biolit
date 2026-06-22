@@ -33,7 +33,7 @@ SUPERVISED_LEVELS = ["regne", "phylum", "classe", "ordre", "famille"]
 # ARCHITECTURE MLP
 # ════════════════════════════════════════════════════════════════════════════
 
-from classifier_mlp import LevelMLP
+from classifier_mlp import LevelMLP  # noqa: E402
 
 
 # ════════════════════════════════════════════════════════════════════════════
@@ -70,7 +70,7 @@ def load_model(device: torch.device = DEVICE) -> BioModel:
     model_file = _hf_download(MODEL_FILE.name)
     tax_file   = _hf_download(TAX_LOOKUP_FILE.name)
     mlp_file   = _hf_download(MLP_MODEL_FILE.name)
-    
+
     # === Proto-CLIP ===
     data = np.load(model_file, allow_pickle=True)
     species_list = list(data["species_list"])
@@ -78,11 +78,11 @@ def load_model(device: torch.device = DEVICE) -> BioModel:
     prototypes = {sp: proto_mat[i] for i, sp in enumerate(species_list)}
     whitening = (data["wh_mean"], data["wh_components"], data["wh_variance"])
     temperature = float(data["temperature"][0])
-    
+
     # === Taxonomie ===
     with open(tax_file, "rb") as f:
         tax_lookup = pickle.load(f)
-    
+
     # === MLP par niveau ===
     mlp_dict = {}
     if mlp_file.exists():
@@ -92,10 +92,10 @@ def load_model(device: torch.device = DEVICE) -> BioModel:
             mlp.load_state_dict(ckpt["state_dict"])
             mlp.eval()
             mlp_dict[level] = (mlp, ckpt["encoder"])
-    
+
     print(f"Modèle chargé : {len(prototypes)} espèces | "
           f"MLP : {list(mlp_dict.keys())} | T={temperature:.2f}")
-    
+
     return BioModel(
         prototypes=prototypes,
         tax_lookup=tax_lookup,
@@ -156,13 +156,13 @@ def predict(
 ) -> dict:
     """
     Prédit le niveau taxonomique le plus fin possible depuis un vecteur de features.
-    
+
     Args:
         feat_w: Vecteur numpy 256d whitened
         model: BioModel chargé avec load_model()
         threshold: Seuil de confiance
         margin_min: Garde-fou faux positifs (score_top1 - score_top2)
-        
+
     Retourne:
         {
             "best_level": "famille",
@@ -179,16 +179,16 @@ def predict(
     # === Proto-CLIP (espèce) ===
     species_list = list(model.prototypes.keys())
     proto_mat = np.vstack([model.prototypes[sp] for sp in species_list])
-    
+
     sims = feat_w @ proto_mat.T
     logits = sims * model.temperature - sims.max() * model.temperature
     proto_proba = np.exp(logits) / np.exp(logits).sum()
-    
+
     top_idx = proto_proba.argsort()[::-1]
     sp_top1 = species_list[top_idx[0]]
     sp_score = float(proto_proba[top_idx[0]])
     sp_margin = sp_score - float(proto_proba[top_idx[1]]) if len(top_idx) > 1 else sp_score
-    
+
     # === MLP (niveaux supérieurs) ===
     mlp_scores = {}
     with torch.no_grad():
@@ -196,7 +196,7 @@ def predict(
             logits_l = mlp(feat_t).squeeze(0)
             proba_l = F.softmax(logits_l, dim=-1).detach().cpu().numpy()
             top_l = proba_l.argsort()[::-1]
-            
+
             mlp_scores[level] = {
                 "label": enc.classes_[top_l[0]],
                 "score": float(proba_l[top_l[0]]),
@@ -207,7 +207,7 @@ def predict(
                     for i in top_l[:3]
                 ],
             }
-    
+
     # === all_scores ===
     all_scores = {
         "species_name": [
@@ -217,10 +217,10 @@ def predict(
     }
     for level, ms in mlp_scores.items():
         all_scores[level] = ms["top3"]
-    
+
     # === Décision hiérarchique ===
     sp_confident = (sp_score >= threshold and sp_margin >= margin_min)
-    
+
     # Taxonomie complète (remplie selon le chemin proto_clip ou mlp)
     taxonomy = {level: None for level in ["regne", "phylum", "classe", "ordre", "famille", "species_name"]}
 
@@ -294,30 +294,30 @@ def predict_image(
 ) -> dict:
     """
     Prédit directement depuis un chemin d'image.
-    
+
     Args:
         image_path: Chemin vers l'image
         model: BioModel chargé
         bioclip: Extracteur BioCLIP (créé si None)
         threshold: Seuil de confiance
         margin_min: Marge minimum
-        
+
     Retourne:
         Résultat de prédiction
     """
     if bioclip is None:
         bioclip = BioCLIPExtractor()
-    
+
     # Charger et transformer l'image
     img = Image.open(image_path).convert("RGB")
-    
+
     # Extraire features BioCLIP
     feat_512 = bioclip.extract(img)
-    
+
     # Appliquer whitening
     wh_mean, wh_comp, wh_var = model.whitening
     feat_w = apply_whitening(feat_512, wh_mean, wh_comp, wh_var)
-    
+
     # Prédire
     return predict(feat_w, model, threshold, margin_min)
 
@@ -334,11 +334,11 @@ def predict_pil_image(
     """
     if bioclip is None:
         bioclip = BioCLIPExtractor()
-    
+
     feat_512 = bioclip.extract(pil_img)
     wh_mean, wh_comp, wh_var = model.whitening
     feat_w = apply_whitening(feat_512, wh_mean, wh_comp, wh_var)
-    
+
     return predict(feat_w, model, threshold, margin_min)
 
 
@@ -355,32 +355,32 @@ def predict_batch(
 ) -> list[dict]:
     """
     Prédit sur un batch d'images
-    
+
     Args:
         images: Liste d'images PIL
         model: BioModel chargé
         bioclip: Extracteur BioCLIP
         threshold: Seuil de confiance
         margin_min: Marge minimum
-        
+
     Retourne:
         Liste de résultats de prédiction
     """
     if bioclip is None:
         bioclip = BioCLIPExtractor()
-    
+
     # Extraction batch
     features_512 = bioclip.extract_batch(images)
-    
+
     # Whitening
     wh_mean, wh_comp, wh_var = model.whitening
     features_w = apply_whitening(features_512, wh_mean, wh_comp, wh_var)
-    
+
     # Prédiction individuelle
     results = []
     for feat_w in features_w:
         results.append(predict(feat_w[None], model, threshold, margin_min))
-    
+
     return results
 
 
@@ -390,28 +390,27 @@ def predict_batch(
 
 if __name__ == "__main__":
     import argparse
-    
+
     parser = argparse.ArgumentParser(description="Inference classification")
     parser.add_argument("--images", type=str, help="Dossier ou fichier image")
     parser.add_argument("--threshold", type=float, default=THRESHOLD)
     parser.add_argument("--margin", type=float, default=MARGIN_MIN)
     args = parser.parse_args()
-    
+
     # Charger le modèle
     model = load_model()
-    
+
     if args.images:
         from pathlib import Path
         path = Path(args.images)
-        
+
         if path.is_dir():
             # Dossier d'images
-            from classifier_bioclip import IMG_TRANSFORM
             images = []
             for f in path.glob("*"):
                 if f.suffix.lower() in {".jpg", ".jpeg", ".png"}:
                     images.append(Image.open(f).convert("RGB"))
-            
+
             results = predict_batch(images, model, threshold=args.threshold, margin_min=args.margin)
             for img_path, result in zip(path.glob("*"), results):
                 print(f"{img_path.name}: {result['best_level']} / {result['best_label']} ({result['best_score']:.2f})")

@@ -14,11 +14,11 @@ BioCLIP2 (frozen)              backbone pré-entraîné sur 200M images biologiq
 Whitening PCA (512d → 256d)    rend les distances cosine plus fiables
   ↓
 MLP supervisé par niveau       un MLP par niveau taxonomique
-  ├── MLP règne   (3 classes)  
+  ├── MLP règne   (3 classes)
   ├── MLP phylum  (~6 classes)
-  ├── MLP classe  (~9 classes) 
-  ├── MLP ordre  (~12 classes) 
-  └── MLP famille(~50 classes)  
+  ├── MLP classe  (~9 classes)
+  ├── MLP ordre  (~12 classes)
+  └── MLP famille(~50 classes)
   +
 Proto-CLIP espèce (232 classes) few-shot : prototype = α × visuel + (1-α) × texte
   ↓
@@ -89,10 +89,10 @@ pip install open-clip-torch torch torchvision scikit-learn pandas pillow pyarrow
 ### 1. Entraîner le modèle
 
 ```bash
-# Entraîner + évaluer sur split 80/20 
+# Entraîner + évaluer sur split 80/20
 python classifier_train.py --fit --eval --images data/images/identifiable
 
-# Entraîner sur tout le dataset 
+# Entraîner sur tout le dataset
 python classifier_train.py --fit --images data/images/identifiable
 ```
 
@@ -110,7 +110,7 @@ Résultats dans `results/predictions.csv`.
 python classifier_train.py --update --images nouvelles_images/
 ```
 
-Seuls les prototypes Proto-CLIP des nouvelles espèces sont recalculés.  
+Seuls les prototypes Proto-CLIP des nouvelles espèces sont recalculés.
 Les MLP par niveau et le whitening restent inchangés.
 
 ---
@@ -135,9 +135,9 @@ for level, preds in result["all_scores"].items():
 
 ```
 results/
-├── proto_model.npz          prototypes Proto-CLIP + whitening PCA    
-├── tax_lookup.pkl           hiérarchie taxonomique espèce → niveaux  
-├── mlp_model.pt             poids MLP par niveau (règne → famille)   
+├── proto_model.npz          prototypes Proto-CLIP + whitening PCA
+├── tax_lookup.pkl           hiérarchie taxonomique espèce → niveaux
+├── mlp_model.pt             poids MLP par niveau (règne → famille)
 └── bioclip_features.npz     cache features BioCLIP2                  (~1 GB, non versionné)
 ```
 ---
@@ -148,7 +148,7 @@ Tous les paramètres sont centralisés dans `config.py`. *
 `CONFIDENCE_THRESHOLD` Seuil d'acceptation. Baisser → plus de prédictions, plus d'erreurs. Monter → moins de prédictions, plus fiables.
  `MARGIN_MIN` Seuil faux positifs. Si top1=91% et top2=89%, margin=0.02 → rejeté. Baisser pour plus de couverture. Plage : 0.05–0.20 |
  `PROTO_ALPHA` Poids visuel dans Proto-CLIP. `0.7` si images de qualité. `0.4` si espèces très rares. |
- `MLP_EPOCHS`  Epochs par MLP. Monter si underfitting, baisser si overfitting. 
+ `MLP_EPOCHS`  Epochs par MLP. Monter si underfitting, baisser si overfitting.
 `MLP_DROPOUT` Régularisation MLP. Monter si overfitting
 
 

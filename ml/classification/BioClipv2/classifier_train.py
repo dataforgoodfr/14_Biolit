@@ -38,7 +38,6 @@ from sklearn.metrics import accuracy_score
 from sklearn.model_selection import train_test_split
 from sklearn.preprocessing import LabelEncoder
 from torch.utils.data import DataLoader, Dataset, WeightedRandomSampler
-from torchvision import transforms
 
 try:
     import open_clip
@@ -59,7 +58,6 @@ from config import (
     PROTO_CACHE_FILE     as CACHE_FILE,
     MARGIN_MIN,
     MLP_EPOCHS,
-    MLP_DROPOUT,
     PROTO_MODEL_FILE  as MODEL_FILE,
     PROTO_TAX_FILE    as TAX_LOOKUP_FILE,
     MLP_MODEL_FILE,
@@ -214,7 +212,7 @@ def train_level_mlps(features_w: np.ndarray, df: pd.DataFrame) -> dict:
     Entraîne un MLP par niveau taxonomique (règne → famille).
     Retourne {niveau → (LevelMLP, LabelEncoder)}.
     """
-    print(f"\n  Entraînement MLP par niveau taxonomique...")
+    print("\n  Entraînement MLP par niveau taxonomique...")
     df_lab   = df[df["species_name"].notna()].reset_index(drop=True)
     mlp_dict = {}
 
@@ -251,9 +249,12 @@ def train_level_mlps(features_w: np.ndarray, df: pd.DataFrame) -> dict:
             for feats_b, labels_b in loader:
                 feats_b, labels_b = feats_b.to(DEVICE), labels_b.to(DEVICE)
                 loss = F.cross_entropy(mlp(feats_b), labels_b)
-                opt.zero_grad(); loss.backward()
+                opt.zero_grad()
+                loss.backward()
                 nn.utils.clip_grad_norm_(mlp.parameters(), 1.0)
-                opt.step(); total += loss.item(); n += 1
+                opt.step()
+                total += loss.item()
+                n += 1
             sch.step()
             if (epoch + 1) % 10 == 0 or epoch == 0:
                 print(f"    [{level} — {n_cls} cls] "
@@ -302,7 +303,7 @@ def compute_prototypes(df, features_w, bioclip, alpha=ALPHA) -> tuple:
     df_lab       = df[df["species_name"].notna()].reset_index(drop=True)
     species_list = sorted(df_lab["species_name"].unique())
 
-    tax_cols   = [l for l in TAXONOMY_LEVELS if l != "species_name" and l in df_lab.columns]
+    tax_cols   = [lvl for lvl in TAXONOMY_LEVELS if lvl != "species_name" and lvl in df_lab.columns]
     tax_lookup = {}
     for _, row in df_lab.drop_duplicates("species_name").iterrows():
         tax_lookup[row["species_name"]] = {lvl: row.get(lvl) for lvl in tax_cols}
@@ -371,7 +372,9 @@ def learn_temperature(prototypes, features_w, df) -> float:
 
     for _ in range(300):
         loss = F.cross_entropy(feats_t @ proto_t.T * log_T.exp(), labels_t)
-        opt.zero_grad(); loss.backward(); opt.step()
+        opt.zero_grad()
+        loss.backward()
+        opt.step()
         with torch.no_grad():
             log_T.clamp_(np.log(1.0), np.log(100.0))
 
@@ -410,7 +413,7 @@ def save_model(prototypes, tax_lookup, whitening, temperature, alpha, mlp_dict):
         }
     torch.save(mlp_save, MLP_MODEL_FILE)
 
-    print(f"\n  Sauvegardé :")
+    print("\n  Sauvegardé :")
     print(f"    Proto-CLIP  → {MODEL_FILE}")
     print(f"    Taxo lookup → {TAX_LOOKUP_FILE}")
     print(f"    MLP niveaux → {MLP_MODEL_FILE} ({list(mlp_dict.keys())})")
@@ -427,11 +430,6 @@ def evaluate(features_w, df, prototypes, tax_lookup, temperature,
     df_lab      = df[df["species_name"].notna()].reset_index(drop=True)
     records     = {lvl: [] for lvl in ALL_LEVELS}
     path_counts = {"proto_clip": 0, "mlp": 0}
-
-    model = BioModel(prototypes, tax_lookup,
-                         (features_w,), temperature, mlp_dict)
-    # On reconstruit un BioModel léger juste pour passer à predict()
-    # (whitening déjà appliqué donc on le bypasse)
 
     for i, (_, row) in enumerate(df_lab.iterrows()):
         # predict() attend un feat_w déjà whitened — c'est le cas ici

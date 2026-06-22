@@ -22,7 +22,7 @@ Prototypes Proto-CLIP pour les **100 espèces** (communes + rares), avec transfo
 
 - **Prototypes visuels** : moyennes pondérées des features BioCLIP par espèce, 3 itérations de raffinement (arXiv:2110.11553)
 - **Fusion Proto-CLIP** : α=0.8 visuel + 0.2 textuel (arXiv:2307.03073)
-- **Espace** : features whitened 256d après PCA 
+- **Espace** : features whitened 256d après PCA
 - **Température** : T*=23.8, apprise par gradient (arXiv:2108.00340)
 - **Accuracy rares** : 51.1%
 

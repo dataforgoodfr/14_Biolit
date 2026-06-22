@@ -55,15 +55,15 @@ def list_available_crops(
 ) -> list[str]:
     """
     Liste tous les crops disponibles pour un run donné.
-    
+
     Retourne une liste de clés S3 (object_name) pour les crops.
     """
     if client is None:
         client = get_s3_client()
-    
+
     prefix = f"{run_name}/crops/"
     crops = []
-    
+
     try:
         paginator = client.get_paginator("list_objects_v2")
         for page in paginator.paginate(Bucket=bucket, Prefix=prefix):
@@ -75,7 +75,7 @@ def list_available_crops(
     except ClientError as e:
         LOGGER.error("Erreur list_available_crops: %s", e)
         return []
-    
+
     return crops
 
 
@@ -93,7 +93,7 @@ def load_image_from_s3(
     """
     if client is None:
         client = get_s3_client()
-    
+
     try:
         response = client.get_object(Bucket=bucket, Key=key)
         image_data = response["Body"].read()
@@ -115,7 +115,7 @@ def load_crops_from_s3(
 ) -> pl.DataFrame:
     """
     Charge les métadonnées des crops depuis S3.
-    
+
     Retourne un DataFrame Polars avec :
         - id_observation : ID de l'observation source
         - id_crops : ID unique du crop
@@ -126,18 +126,18 @@ def load_crops_from_s3(
     """
     if client is None:
         client = get_s3_client()
-    
+
     crops = list_available_crops(run_name, bucket, client)
-    
+
     if limit:
         crops = crops[:limit]
-    
+
     rows = []
     for key in crops:
         # Parse: run_name/crops/{id_observation}_{regne}_{confiance}.jpg
         filename = Path(key).stem  # sans extension
         parts = filename.split("_")
-        
+
         if len(parts) >= 3:
             id_observation = parts[0]
             regne = parts[1]
@@ -149,7 +149,7 @@ def load_crops_from_s3(
             id_observation = filename
             regne = "unknown"
             confiance = 0.0
-        
+
         rows.append({
             "id_observation": id_observation,
             "id_crops": filename,
@@ -158,7 +158,7 @@ def load_crops_from_s3(
             "path_s3": f"s3://{bucket}/{key}",
             "s3_key": key,
         })
-    
+
     df = pl.DataFrame(rows)
     LOGGER.info("%d crops chargés depuis S3", len(df))
     return df
@@ -172,18 +172,18 @@ def load_crops_with_images(
 ) -> list[tuple[Image.Image, dict]]:
     """
     Charge les crops avec leurs images PIL.
-    
+
     Retourne une liste de tuples (image, metadata) où metadata est un dict
     avec les métadonnées du crop.
     """
     df = load_crops_from_s3(run_name, bucket, limit, client)
-    
+
     results = []
     for row in df.iter_rows(named=True):
         img = load_image_from_s3(row["s3_key"], bucket, client)
         if img is not None:
             results.append((img, row))
-    
+
     LOGGER.info("%d images chargées avec succès", len(results))
     return results
 
