@@ -107,3 +107,22 @@ def upload_image_s3(client, pil_img: Image.Image, bucket_name: str, object_name:
         ContentEncoding="image/jpeg",
         ContentLength=buffer.getbuffer().nbytes
     )
+
+def load_image_from_s3(s3_client,
+                       bucket_name:str,
+                       object_key:str)->Image.Image:
+    """
+    Charge une image depuis S3/MinIO
+    et retourne un objet PIL.Image.
+    """
+    response=s3_client.get_object(
+        Bucket=bucket_name,
+        Key=object_key
+    )
+
+    image_data=response["Body"].read()
+
+    image=Image.open(BytesIO(image_data)).convert("RGB")
+
+    return image
+

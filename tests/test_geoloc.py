@@ -10,8 +10,8 @@ class TestDistanceToCommunes:
             {
                 "id_-_n1": [1, 2, 3],
                 "nom_du_lieu_-_n1": ["paris", "pornic", "ocean atlantique"],
-                "longitude_-_n1": [2.33333, -2.108881, -9.864458],
-                "latitude_-_n1": [48.866669, 47.111202, 47.934747],
+                "longitude": [2.33333, -2.108881, -9.864458],
+                "latitude": [48.866669, 47.111202, 47.934747],
             }
         )
         out = get_info_nearest_commune(inp)
@@ -19,12 +19,12 @@ class TestDistanceToCommunes:
             {
                 "id_-_n1": [1, 2, 3],
                 "nom_du_lieu_-_n1": ["paris", "pornic", "ocean atlantique"],
-                "longitude_-_n1": [2.33333, -2.108881, -9.864458],
-                "latitude_-_n1": [48.866669, 47.111202, 47.934747],
+                "longitude": [2.33333, -2.108881, -9.864458],
+                "latitude": [48.866669, 47.111202, 47.934747],
                 "distance_commune_m": [0, 0, np.nan],
                 "nearest_commune": ["Paris", "Pornic", None],
                 "code_insee": ["75056", "44131", None],
-                "code_postal": [75000, 44210, np.nan],
+                "code_postal": ["75000", "44210", None],
                 "reg_nom": ["Île-de-France", "Pays de la Loire", None],
                 "dep_nom": ["Paris", "Loire-Atlantique", None]
             }
@@ -36,8 +36,8 @@ class TestDistanceToCommunes:
             {
                 "id_-_n1": [1, 2, 3],
                 "nom_du_lieu_-_n1": ["paris", "pornic", "ocean atlantique"],
-                "longitude_-_n1": [2.33333, -2.108881, -9.864458],
-                "latitude_-_n1": [48.866669, 47.111202, 47.934747],
+                "longitude": [2.33333, -2.108881, -9.864458],
+                "latitude": [48.866669, 47.111202, 47.934747],
             }
         )
         out = get_info_distance_to_coast(inp)
@@ -45,8 +45,8 @@ class TestDistanceToCommunes:
             {
                 "id_-_n1": [1, 2, 3],
                 "nom_du_lieu_-_n1": ["paris", "pornic", "ocean atlantique"],
-                "longitude_-_n1": [2.33333, -2.108881, -9.864458],
-                "latitude_-_n1": [48.866669, 47.111202, 47.934747],
+                "longitude": [2.33333, -2.108881, -9.864458],
+                "latitude": [48.866669, 47.111202, 47.934747],
                 "distance_to_coast": [np.nan, 0.314727, np.nan],
                 "is_coastal": [False, True, False],
             }

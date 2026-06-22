@@ -25,7 +25,7 @@ crop_inference/
 # Image unique
 uv run predict.py --source photo.jpg
 
-# Dossier entier -> à télécharger au préalable 
+# Dossier entier -> à télécharger au préalable
 uv run predict.py --source ./images/ # TODO: cf. dataeng pour cadrer ceci
 
 

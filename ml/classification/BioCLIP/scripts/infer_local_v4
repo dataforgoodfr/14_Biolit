@@ -5,7 +5,7 @@ Classifie des images locales avec le système hybride v4.
 
 Fichiers requis  :
   - prototypes_v4_*.pt     → prototypes + température + alpha + whitening
-  - best_model_top50_*.pth → classifier top 50 
+  - best_model_top50_*.pth → classifier top 50
 
 Usage :
   python infer_local_v4.py --images /chemin/vers/dossier/
@@ -91,7 +91,7 @@ SPECIES_DESCRIPTIONS = {
     "Ligia oceanica":          "a photo of Ligia oceanica, sea slater, large grey isopod crustacean running on rocky supralittoral",
     "Ophioderma longicauda":   "a photo of Ophioderma longicauda, serpent star brittlestar, five long snake-like arms under rocks",
     "Holothuria tubulosa":     "a photo of Holothuria tubulosa, sea cucumber, brown elongated soft-bodied echinoderm on sandy bottom",
-    # 63 descriptions complètes 
+    # 63 descriptions complètes
     "Acanthocardia tuberculata":        "a photo of Acanthocardia tuberculata, rough cockle, large ribbed bivalve with tuberculated ribs on sandy intertidal",
     "Actinia mediterranea":             "a photo of Actinia mediterranea, Mediterranean sea anemone, dark column with blue-purple acrorhagi on rocky shore",
     "Anomia ephippium":                 "a photo of Anomia ephippium, saddle oyster, thin flat irregular bivalve cemented to rocks or shells",

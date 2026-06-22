@@ -5,7 +5,7 @@ Classifie des images locales avec le système hybride v4.
 
 Fichiers requis  :
   - prototypes_v4_*.pt     → prototypes + température + alpha + whitening
-  - best_model_top50_*.pth → classifier top 50 
+  - best_model_top50_*.pth → classifier top 50
 
 Usage :
   python infer_local_v4.py --images /chemin/vers/dossier/
@@ -14,7 +14,8 @@ Usage :
                             --output resultats_inference.csv
 """
 
-import subprocess, sys
+import subprocess
+import sys
 
 try:
     import open_clip
@@ -87,11 +88,10 @@ SPECIES_DESCRIPTIONS = {
     "Himanthalia elongata":    "a photo of Himanthalia elongata, thongweed, long strap-like brown seaweed from button-shaped holdfast on lower shore",
     "Padina pavonica":         "a photo of Padina pavonica, peacock tail, fan-shaped brown alga with concentric white bands Mediterranean",
     "Galathea squamifera":     "a photo of Galathea squamifera, squat lobster, flattened brown crustacean with broad abdomen under rocks",
-    "Palaemon serratus":       "a photo of Palaemon serratus, common prawn, transparent shrimp with red-brown bands on body and claws",
     "Ligia oceanica":          "a photo of Ligia oceanica, sea slater, large grey isopod crustacean running on rocky supralittoral",
     "Ophioderma longicauda":   "a photo of Ophioderma longicauda, serpent star brittlestar, five long snake-like arms under rocks",
     "Holothuria tubulosa":     "a photo of Holothuria tubulosa, sea cucumber, brown elongated soft-bodied echinoderm on sandy bottom",
-    # 63 descriptions complètes 
+    # 63 descriptions complètes
     "Acanthocardia tuberculata":        "a photo of Acanthocardia tuberculata, rough cockle, large ribbed bivalve with tuberculated ribs on sandy intertidal",
     "Actinia mediterranea":             "a photo of Actinia mediterranea, Mediterranean sea anemone, dark column with blue-purple acrorhagi on rocky shore",
     "Anomia ephippium":                 "a photo of Anomia ephippium, saddle oyster, thin flat irregular bivalve cemented to rocks or shells",
@@ -478,7 +478,7 @@ def print_summary(df):
     accepted = df[df["methode"] != "rejected"]
     print(f"\n  Taux acceptées    : {len(accepted)/len(df)*100:.1f}%")
 
-    print(f"\n  Top 10 espèces prédites :")
+    print("\n  Top 10 espèces prédites :")
     for sp, n in accepted["espece_pred"].value_counts().head(10).items():
         print(f"    {sp:<40s} : {n:3d} images")
 
@@ -525,7 +525,6 @@ def main():
             infer_images._taxonomy = {}
             infer_images._niveaux  = []
         else:
-            import numpy as np
             df_tax = pd.read_csv(tax_path)
             espece_candidates = ["espece", "Nom scientifique - observation",
                                  "nom_scientifique", "species"]
@@ -569,7 +568,7 @@ def main():
             print("CONFIANCE PAR NIVEAU TAXONOMIQUE")
             print("=" * 60)
             print(f"  (moyenne sur {len(accepted)} images acceptées)")
-            print(f"  Probas utilisées : classifier→50 espèces, prototypes→100 espèces\n")
+            print("  Probas utilisées : classifier→50 espèces, prototypes→100 espèces\n")
             print(f"  {'Niveau':<18} {'Conf. moy.':>12} {'Taxon le + fréquent'}")
             print(f"  {'─'*60}")
             print(f"  {'Espèce':<18} {accepted['confiance'].mean():>11.1%}  "
@@ -581,7 +580,7 @@ def main():
                     top1 = accepted[cp].value_counts().index[0] if cp in accepted.columns else "?"
                     print(f"  {niv.capitalize():<18} {moy:>11.1%}  {top1}")
 
-            print(f"\n  Détail par image :")
+            print("\n  Détail par image :")
             print(f"  {'Image':<32} {'Espèce':>28} {'Genre':>12} {'Famille':>12} {'Ordre':>12} {'Classe':>12} {'Source'}")
             print(f"  {'─'*115}")
 
@@ -661,7 +660,7 @@ def main():
     df_results.to_csv(output_path, index=False)
     print(f"\nRésultats : {output_path} ({len(df_results)} lignes)")
     if infer_images._niveaux:
-        print(f"   Colonnes taxonomiques : pred/conf par niveau + alternative _2")
+        print("   Colonnes taxonomiques : pred/conf par niveau + alternative _2")
 
     if len(df_errors) > 0:
         err_path = output_path.with_suffix(".errors.csv")

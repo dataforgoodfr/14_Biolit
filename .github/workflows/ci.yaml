@@ -22,4 +22,10 @@ jobs:
     - name: Run pre-commit hooks
       run: uv run pre-commit run --all-files
     - name: Run unit tests
+      env:
+        BIOLIT_API_URL: ${{ secrets.BIOLIT_API_URL }}
+        aws_access_key_id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+        aws_secret_access_key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+        aws_url: ${{ secrets.AWS_URL }}
+        REGION: ${{ secrets.REGION }}
       run: uv run --with pytest pytest -vv

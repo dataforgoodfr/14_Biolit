@@ -35,7 +35,7 @@ def _parse_nom_commun(filename: str) -> str | None:
 
 
 def _normalize_nom(nom: str) -> str:
-    
+
     return str(nom).strip().replace(" ", "_").replace("/", "-")
 
 
@@ -50,7 +50,7 @@ def build_dataset(
     Paramètres :
         images_dir       : dossier contenant les images (défaut: IMAGES_DIR/identifiable)
         export_biolit : CSV avec ID - N1 + Nom scientifique
-        taxonomy_path    : parquet taxref 
+        taxonomy_path    : parquet taxref
 
     Retourne un DataFrame avec image_path + colonnes taxonomiques.
     """
@@ -128,9 +128,9 @@ def build_dataset(
             print(f"  - {u}")
 
     if n_matched > 0:
-        print(f"\nDistribution par règne :")
+        print("\nDistribution par règne :")
         print(df.groupby("regne").size().sort_values(ascending=False).to_string())
-        print(f"\nTop 10 espèces :")
+        print("\nTop 10 espèces :")
         print(df.groupby("species_name").size().sort_values(ascending=False).head(10).to_string())
         rare = (df.groupby("species_name").size() < 5).sum()
         print(f"\nEspèces avec < 5 images : {rare} / {df['species_name'].nunique()}")

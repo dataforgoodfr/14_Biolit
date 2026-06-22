@@ -5,7 +5,6 @@ import time
 import polars as pl
 from datetime import datetime
 from pathlib import Path
-
 import yaml
 import torch
 import requests
@@ -265,7 +264,8 @@ def download_all_images(df, tmp_dir: str):
 
         file_path = tmp_dir / f"{id_obs}.jpg"
 
-        response = requests.get(url, stream=True)
+        response = requests.get(url,stream=True)
+        # response = requests.get(url, stream=True)
         response.raise_for_status()
 
         with open(file_path, "wb") as f:

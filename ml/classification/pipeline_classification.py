@@ -47,7 +47,7 @@ def run_classification(
 ) -> pl.DataFrame:
     """
     Exécute la classification sur les crops S3.
-    
+
     Args:
         run_name: Nom du run (dossier S3)
         bucket: Nom du bucket S3
@@ -55,33 +55,33 @@ def run_classification(
         threshold: Seuil de confiance
         margin_min: Marge minimum
         device: Device PyTorch (cpu/cuda)
-        
+
     Retourne:
         DataFrame Polars avec les prédictions
     """
     device = device or str(DEVICE)
     print(f"\n=== Classification: run={run_name} | device={device} ===")
-    
+
     # 1. Charger le modèle
     print("  Chargement du modèle...")
     model = load_model()
     bioclip = BioCLIPExtractor()
-    
+
     # 2. Charger les crops depuis S3
     print("  Chargement des crops depuis S3...")
     crops_data = load_crops_with_images(run_name, bucket, limit)
-    
+
     if not crops_data:
         print("  ⚠ Aucun crop trouvé!")
         return pl.DataFrame()
-    
+
     print(f"  {len(crops_data)} crops chargés")
-    
+
     # 3. Prédiction batch
     print("  Prédiction en cours...")
     images = [img for img, _ in crops_data]
     metadata = [meta for _, meta in crops_data]
-    
+
     results = predict_batch(
         images,
         model,
@@ -89,7 +89,7 @@ def run_classification(
         threshold=threshold,
         margin_min=margin_min
     )
-    
+
     # 4. Construire le DataFrame résultat
     rows = []
     for meta, pred in zip(metadata, results):
@@ -119,7 +119,7 @@ def run_classification(
     df.write_parquet(output_path)
     print(f"  Résultats → {output_path}")
 
-    # 6. Logger dans PostgreSQL 
+    # 6. Logger dans PostgreSQL
     if no_db:
         print("  [--no-db] Postgres ignoré — résultats dans le parquet uniquement")
     else:
@@ -129,18 +129,18 @@ def run_classification(
         except Exception as e:
             print(f"  ⚠ Postgres non disponible ({e})")
             print("  → Utilise --no-db pour tester sans PostgreSQL")
-    
+
     # Statistiques
     n_species = (df["best_level"] == "species_name").sum()
     n_family = (df["best_level"] == "famille").sum()
     n_other = len(df) - n_species - n_family
-    
-    print(f"\n=== Résultats ===")
+
+    print("\n=== Résultats ===")
     print(f"  Total: {len(df)}")
     print(f"  Espèce: {n_species} ({n_species/len(df):.1%})")
     print(f"  Famille: {n_family} ({n_family/len(df):.1%})")
     print(f"  Autre: {n_other} ({n_other/len(df):.1%})")
-    
+
     return df
 
 
@@ -227,7 +227,7 @@ def main():
     parser.add_argument("--no-db", action="store_true",
                         help="Ne pas écrire dans PostgreSQL (mode test local)")
     args = parser.parse_args()
-    
+
     if args.run_name:
         # Classification depuis S3
         run_classification(

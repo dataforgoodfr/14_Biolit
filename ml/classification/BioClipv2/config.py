@@ -2,7 +2,6 @@
 config.py — Configuration centrale de la pipeline
 """
 
-import os
 import torch
 from pathlib import Path
 

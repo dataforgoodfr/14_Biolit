@@ -1,3 +1,4 @@
+from pathlib import Path
 from unittest.mock import patch
 
 import polars as pl
@@ -13,6 +14,10 @@ from biolit.visualisation.species_distribution import create_species_graph_prope
 @patch(
     "biolit.visualisation.species_distribution.LIMIT_LEARNABLE_NODES",
     2,
+)
+@patch(
+    "biolit.visualisation.species_distribution.DATADIR",
+    Path("/tmp"),
 )
 class TestCreateSpeciesGraphProperties:
     def test_create_species_graph_properties(self):

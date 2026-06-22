@@ -3,6 +3,7 @@ import polars as pl
 from sqlalchemy import create_engine, text
 import pandas as pd
 import structlog
+from typing import Dict
 from dotenv import load_dotenv
 LOGGER = structlog.get_logger()
 load_dotenv()
@@ -330,3 +331,209 @@ def insert_taxonomy_predictions(df: pl.DataFrame, engine) -> None:
                     best_score   = EXCLUDED.best_score
             """), row)
     LOGGER.info("ml_taxonomy: %d lignes insérées", len(rows))
+
+
+def get_observation_image_path(engine,
+                               id_obs:int,
+                               table_name:str) -> Dict :
+
+    """
+    Récupère le path S3 associé à une observation
+    puis retourne :
+    {
+        "bucket": ...,
+        "object_key": ...
+    }
+    """
+
+    query=f"""
+      SELECT path_s3 FROM {table_name}
+        WHERE  CAST(id_observation AS BIGINT)={id_obs};
+    """
+    df = pl.read_database(query=query, connection=engine)
+
+    if df.is_empty():
+        LOGGER.info(f"No IMAGE for this {id_obs}")
+        return None
+
+    # récupération string réelle
+    s3_path = df["path_s3"][0]
+
+    # suppression prefix s3://
+    sans_prefix = s3_path[5:]
+
+    # split bucket / key
+    bucket_name, rest = sans_prefix.split("/", 1)
+
+    return {
+            "bucket": bucket_name,
+            "rest": rest }
+
+def create_db_finale_table(engine):
+    with engine.begin() as conn:
+        conn.execute(text("""
+            CREATE TABLE IF NOT EXISTS db_finale (
+                id_crops TEXT PRIMARY KEY,
+                id_observation BIGINT,
+                nom_scientifique TEXT,
+                annotateur  TEXT,
+                source  TEXT,
+                validee  TEXT,
+                espece_identifiee TEXT
+            );
+        """))
+
+def create_taxonomy_queue_table(engine):
+
+    with engine.begin() as conn:
+
+        conn.execute(text("""
+            CREATE TABLE IF NOT EXISTS taxonomy_queue (
+                id_crops TEXT PRIMARY KEY,
+                id_observation BIGINT NOT NULL,
+                task_created_date TIMESTAMP,
+                crop_index INTEGER,
+                x FLOAT,
+                y FLOAT,
+                width FLOAT,
+                height FLOAT,
+                original_width INTEGER,
+                original_height INTEGER,
+                nom_scientifique TEXT,
+                annotateur TEXT,
+                annotated_at TIMESTAMP,
+                commentaire TEXT,
+                source TEXT,
+                validee TEXT,
+                espece_identifiee TEXT
+            );
+        """))
+
+def insert_db_finale_dataframe(df, engine):
+        """
+        Insert les observations finales dans db_finale.
+        """
+
+        if df.is_empty():
+            LOGGER.info("Aucune donnée à insérer dans db_finale")
+            return
+
+        rows = df.to_dicts()
+
+        query = text("""
+            INSERT INTO db_finale (
+                id_crops,
+                id_observation,
+                nom_scientifique,
+                annotateur,
+                source,
+                validee,
+                espece_identifiee
+            )
+            VALUES (
+                :id_crops,
+                :id_observation,
+                :nom_scientifique,
+                :annotateur,
+                :source,
+                :validee,
+                :espece_identifiee
+            )
+            ON CONFLICT (id_crops)
+            DO NOTHING
+        """)
+
+        with engine.begin() as conn:
+            conn.execute(query, rows)
+
+
+def insert_taxonomy_queue_dataframe(df, engine):
+        """
+        Insert les crops manuels à envoyer
+        vers ML taxonomy.
+        """
+
+        if df.is_empty():
+            LOGGER.info("Aucune donnée à insérer dans taxonomy_queue")
+            return
+
+        rows = df.to_dicts()
+
+        query = text("""
+            INSERT INTO taxonomy_queue (
+                id_crops,
+                id_observation,
+                task_created_date,
+                crop_index,
+                x,
+                y,
+                width,
+                height,
+                original_width,
+                original_height,
+                nom_scientifique,
+                annotateur,
+                annotated_at,
+                commentaire,
+                source,
+                validee,
+                espece_identifiee
+            )
+            VALUES (
+                :id_crops,
+                :id_observation,
+                :task_created_date,
+                :crop_index,
+                :x,
+                :y,
+                :width,
+                :height,
+                :original_width,
+                :original_height,
+                :nom_scientifique,
+                :annotateur,
+                :annotated_at,
+                :commentaire,
+                :source,
+                :validee,
+                :espece_identifiee
+            )
+            ON CONFLICT (id_crops)
+            DO NOTHING
+        """)
+
+        with engine.begin() as conn:
+            conn.execute(query, rows)
+
+        LOGGER.info(
+            "Insertion taxonomy_queue terminée",
+            rows_inserted=len(rows)
+        )
+
+def prepare_db_finale_dataframe(df: pl.DataFrame ) -> pl.DataFrame:
+        """
+        Prépare le dataframe avant insertion
+        dans db_finale.
+        """
+
+        return (
+            df
+            .select([
+                "id_crops",
+                "id_observation",
+                "nom_scientifique",
+                "annotateur",
+                "source",
+                "validee",
+                "espece_identifiee"
+            ])
+            .with_columns([
+                pl.col("id_crops").cast(pl.Utf8),
+                pl.col("id_observation").cast(pl.Int64),
+                pl.col("nom_scientifique").cast(pl.Utf8),
+                pl.col("annotateur").cast(pl.Utf8),
+                pl.col("source").cast(pl.Utf8),
+                pl.col("validee").cast(pl.Utf8),
+                pl.col("espece_identifiee").cast(pl.Utf8),
+            ])
+        )
