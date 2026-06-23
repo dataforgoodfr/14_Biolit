@@ -20,15 +20,12 @@ crop_inference/
 
 ## Quickstart
 
+À lancer depuis la racine du dépôt :
 
 ```bash
-# Image unique
-uv run predict.py --source photo.jpg
-
-# Dossier entier -> à télécharger au préalable
-uv run predict.py --source ./images/ # TODO: cf. dataeng pour cadrer ceci
-
-
+uv run python -m ml.crop_inference.predict \
+  --config ml/crop_inference/config.yaml \
+  --source ml/crop_inference/images/
 ```
 
 ## Configuration
