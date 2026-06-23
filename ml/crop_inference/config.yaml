@@ -1,7 +1,7 @@
 model:
   source: "huggingface"
   repo_id: "DataForGood/yolov8_biolit_crop"
-  filename: "runs/finetune-yolo-after-dyno-V2/best.pt" # Dernier modèle testé par Hillel
+  filename: "runs/finetune-yolo-after-dyno-V2/best-fixed.pt" # best.pt de Hillel avec names corrigés {0:plant,1:animal} (poids inchangés)
 
 inference:
   conf: 0.4
