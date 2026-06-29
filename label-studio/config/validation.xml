@@ -1,0 +1,16 @@
+<View>
+  <Header value="Taxon proposé : $predicted_name" />
+  <Text value="Rang : $predicted_rank — score : $score" />
+  <Image name="image" value="$image" zoom="true" />
+  <Choices name="decision" toName="image" choice="single-radio" required="true">
+    <Choice value="Prédiction correcte" />
+    <Choice value="Corriger l'espèce" />
+    <Choice value="Non identifiable" />
+  </Choices>
+  <TextArea
+    name="corrected_species"
+    toName="image"
+    placeholder="Nom scientifique corrigé (si nécessaire)"
+    rows="2"
+  />
+</View>

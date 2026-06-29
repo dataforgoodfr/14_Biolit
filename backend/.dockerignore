@@ -1,0 +1,15 @@
+.git
+.env
+.venv
+__pycache__
+.pytest_cache
+.ruff_cache
+tests
+data
+models
+outputs
+runs
+*.pt
+*.pth
+*.pkl
+*.npz

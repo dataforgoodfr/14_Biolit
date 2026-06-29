@@ -1,0 +1,107 @@
+services:
+  postgres:
+    image: postgres:15-alpine
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      POSTGRES_DB: ${POSTGRES_DB}
+    ports:
+      - "${POSTGRES_PORT:-5432}:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER} -d ${POSTGRES_DB}"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+  minio:
+    image: minio/minio:latest
+    restart: unless-stopped
+    command: server /data --console-address ":9001"
+    environment:
+      MINIO_ROOT_USER: ${MINIO_ROOT_USER}
+      MINIO_ROOT_PASSWORD: ${MINIO_ROOT_PASSWORD}
+    ports:
+      - "${MINIO_PORT:-9000}:9000"
+      - "${MINIO_CONSOLE_PORT:-9001}:9001"
+    volumes:
+      - minio_data:/data
+  minio-init:
+    image: minio/mc:latest
+    depends_on:
+      minio:
+        condition: service_started
+    entrypoint: >-
+      /bin/sh -c "until mc alias set local http://minio:9000
+      '${MINIO_ROOT_USER}' '${MINIO_ROOT_PASSWORD}'; do sleep 2; done &&
+      mc mb --ignore-existing local/${S3_BUCKET:-biolit-temporary}"
+    restart: "no"
+
+  label-studio:
+    image: heartexlabs/label-studio:1.13.1
+    restart: unless-stopped
+    environment:
+      LABEL_STUDIO_HOST: ${LABEL_STUDIO_PUBLIC_URL:-http://localhost:8089}
+      LABEL_STUDIO_USERNAME: ${LABEL_STUDIO_USERNAME}
+      LABEL_STUDIO_PASSWORD: ${LABEL_STUDIO_PASSWORD}
+    ports:
+      - "${LABEL_STUDIO_PORT:-8089}:8080"
+    volumes:
+      - label_studio_data:/label-studio/data
+
+  metabase:
+    image: ${METABASE_IMAGE:-metabase/metabase:latest}
+    restart: unless-stopped
+    environment:
+      MB_DB_FILE: /metabase-data/metabase.db
+    ports:
+      - "${METABASE_PORT:-3000}:3000"
+    volumes:
+      - metabase_data:/metabase-data
+    depends_on:
+      postgres:
+        condition: service_healthy
+
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    restart: unless-stopped
+    environment:
+      POSTGRES_URL: postgresql://${POSTGRES_USER}:${POSTGRES_PASSWORD}@postgres:5432/${POSTGRES_DB}
+      BIOLIT_API_URL: ${BIOLIT_API_URL}
+      AWS_ACCESS_KEY_ID: ${MINIO_ROOT_USER}
+      AWS_SECRET_ACCESS_KEY: ${MINIO_ROOT_PASSWORD}
+      AWS_REGION: us-east-1
+      S3_BUCKET: ${S3_BUCKET:-biolit-temporary}
+      S3_ENDPOINT_URL: http://minio:9000
+      S3_PUBLIC_ENDPOINT_URL: ${S3_PUBLIC_ENDPOINT_URL:-http://localhost:9000}
+      LABEL_STUDIO_URL: http://label-studio:8080
+      LABEL_STUDIO_API_KEY: ${LABEL_STUDIO_API_KEY}
+      LABEL_CONFIG_DIR: /app/label-studio/config
+      PIPELINE_BATCH_SIZE: ${PIPELINE_BATCH_SIZE:-20}
+      PIPELINE_INTERVAL_SECONDS: ${PIPELINE_INTERVAL_SECONDS:-300}
+      PROCESSING_STALE_MINUTES: ${PROCESSING_STALE_MINUTES:-30}
+      ML_DEVICE: ${ML_DEVICE:-cpu}
+      HF_HOME: /models/huggingface
+    volumes:
+      - model_cache:/models
+      - ./label-studio/config:/app/label-studio/config:ro
+    depends_on:
+      postgres:
+        condition: service_healthy
+      minio-init:
+        condition: service_completed_successfully
+      label-studio:
+        condition: service_started
+
+volumes:
+  postgres_data:
+  minio_data:
+  label_studio_data:
+  model_cache:
+  metabase_data:
+    name: ${METABASE_VOLUME_NAME:-biolit_metabase_data}
+    external: ${METABASE_VOLUME_EXTERNAL:-false}

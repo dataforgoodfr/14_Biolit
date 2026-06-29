@@ -1,0 +1,10 @@
+<View>
+  <Header value="Dessinez une boîte autour de l'organisme principal." />
+  <Image name="image" value="$image" zoom="true" />
+  <RectangleLabels name="crop" toName="image" maxUsages="1">
+    <Label value="organisme" background="#2E7D32" />
+  </RectangleLabels>
+  <Choices name="presence" toName="image" choice="single-radio">
+    <Choice value="Pas d'espèce" />
+  </Choices>
+</View>
