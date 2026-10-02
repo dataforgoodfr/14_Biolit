@@ -1,0 +1,51 @@
+[project]
+name = "14_Biolit"
+version = "0.1.0"
+description = "Pipeline Biolit d'ingestion, ML et validation Label Studio"
+readme = "README.md"
+requires-python = ">=3.12"
+
+dependencies = [
+    "beautifulsoup4>=4.12.0",
+    "boto3>=1.42.89",
+    "geopandas>=1.1.2",
+    "huggingface-hub>=0.36.2",
+    "label-studio-sdk>=2.0.13",
+    "numpy>=2.0.0",
+    "open-clip-torch>=2.24.0",
+    "pandas>=2.2.3",
+    "pillow>=12.0.0",
+    "polars>=1.36.1",
+    "psycopg2-binary>=2.9.11",
+    "pyarrow>=23.0.1",
+    "python-dotenv>=1.2.2",
+    "requests>=2.32.3",
+    "scikit-learn>=1.8.0",
+    "shapely>=2.1.2",
+    "sqlalchemy>=2.0.44",
+    "structlog>=25.5.0",
+    "torch>=2.11.0",
+    "torchvision",
+    "ultralytics>=8.0.81",
+]
+
+[dependency-groups]
+dev = [
+    "pre-commit>=4.5.1",
+    "pytest>=9.0.2",
+    "ruff>=0.14.10",
+]
+
+[tool.pytest.ini_options]
+pythonpath = ["."]
+
+# Clever Cloud n'a pas de GPU : on force les wheels CPU de PyTorch
+# (bien plus légers que les wheels CUDA par défaut -> image ~7 Go -> ~2-3 Go).
+[[tool.uv.index]]
+name = "pytorch-cpu"
+url = "https://download.pytorch.org/whl/cpu"
+explicit = true
+
+[tool.uv.sources]
+torch = { index = "pytorch-cpu" }
+torchvision = { index = "pytorch-cpu" }

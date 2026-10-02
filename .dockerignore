@@ -1,18 +1,30 @@
 # Python
 __pycache__/
+**/__pycache__/
 *.pyc
 *.pyo
 *.pyd
 
 # Environnements
 .venv/
+**/.venv/
 venv/
+**/venv/
 .env
+**/.env
 
 # Git
 .git
 .gitignore
+.clever.json
 
 # Dossiers
 orchestrateur/**
 data/**
+**/data/**
+outputs/**
+**/outputs/**
+runs/**
+**/runs/**
+sample_data/**
+**/sample_data/**

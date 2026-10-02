@@ -1,0 +1,22 @@
+<View>
+  <Image name="image" value="$image" zoom="true" zoomControl="true"/>
+
+  <Header value="Proposition du modele IA"/>
+  <Header value="Espece proposee : $species_name  (confiance $best_score)"/>
+  <Header value="Taxonomie : $regne / $phylum / $classe / $ordre / $famille"/>
+  <Header value="Detection YOLO : $regne_yolo (confiance $confiance_yolo)"/>
+  <HyperText name="doris" value="$lien_doris_html"/>
+  <HyperText name="carte" value="$geo_map_html"/>
+  <Header value="Lieu : $commune, $departement ($region)"/>
+
+  <Header value="Votre validation"/>
+  <Choices name="decision" toName="image" required="true">
+    <Choice value="Prédiction correcte"/>
+    <Choice value="Corriger l'espèce"/>
+    <Choice value="Non identifiable"/>
+  </Choices>
+  <Header value="Si correction : nom d'espece corrige"/>
+  <TextArea name="espece_corrigee" toName="image" rows="1" maxSubmissions="1"/>
+  <Header value="Commentaire (optionnel)"/>
+  <TextArea name="commentaire" toName="image" rows="2" maxSubmissions="1"/>
+</View>

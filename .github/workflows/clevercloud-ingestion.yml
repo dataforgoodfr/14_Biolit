@@ -1,0 +1,30 @@
+name: Ingestion Biolit (Clever Task)
+
+# La pipeline est déployée sur Clever Cloud comme "Task" (conteneur Docker qui
+# démarre, exécute `pipelines.run`, puis s'arrête). Clever Cloud n'a pas de cron
+# natif pour les Tasks : on les déclenche en relançant l'app via `clever restart`.
+# Ce workflow joue ce rôle de planificateur (cron) + déclenchement manuel.
+
+on:
+  schedule:
+    # 02:00 UTC chaque lundi (les serveurs Clever Cloud sont en UTC)
+    - cron: "0 2 * * 1"
+  workflow_dispatch: {}
+
+# Secrets à définir dans le repo (Settings → Secrets and variables → Actions) :
+#   CLEVER_TOKEN            : jeton clever-tools  (clever login → ~/.config/clever-cloud)
+#   CLEVER_SECRET           : secret clever-tools
+#   CLEVER_INGESTION_APP_ID : ID de l'app Task (format app_xxxxxxxx-xxxx-...)
+env:
+  CLEVER_TOKEN: ${{ secrets.CLEVER_TOKEN }}
+  CLEVER_SECRET: ${{ secrets.CLEVER_SECRET }}
+
+jobs:
+  trigger-ingestion:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Install clever-tools
+        run: npm install -g clever-tools
+
+      - name: Trigger ingestion task
+        run: clever restart --app "${{ secrets.CLEVER_INGESTION_APP_ID }}"

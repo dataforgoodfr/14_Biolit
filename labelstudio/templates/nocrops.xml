@@ -1,0 +1,20 @@
+<View>
+  <Image name="image" value="$image" zoom="true" zoomControl="true"/>
+
+  <Header value="Contexte"/>
+  <Header value="Site : $site"/>
+  <Header value="Lieu : $commune, $departement ($region)"/>
+  <HyperText name="carte" value="$geo_map_html"/>
+
+  <Header value="Aucune espece identifiable sur l'image ?"/>
+  <Choices name="presence" toName="image">
+    <Choice value="Aucune espece identifiable"/>
+  </Choices>
+
+  <Header value="Sinon : entourez chaque espece et nommez-la"/>
+  <Rectangle name="bbox" toName="image"/>
+  <TextArea name="nom_espece" toName="image" perRegion="true" rows="1" placeholder="Nom de l'espece"/>
+
+  <Header value="Commentaire (optionnel)"/>
+  <TextArea name="commentaire" toName="image" rows="2" maxSubmissions="1"/>
+</View>

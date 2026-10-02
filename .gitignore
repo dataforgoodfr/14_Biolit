@@ -184,3 +184,4 @@ images_test/
 labeled_test/
 runs/
 outputs/
+.clever.json
