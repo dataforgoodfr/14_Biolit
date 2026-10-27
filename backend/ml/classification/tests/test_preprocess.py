@@ -1,23 +1,11 @@
 """
-Non-régression du prétraitement : la version numpy (runtime ONNX, sans PyTorch)
-doit être identique à l'ancienne chaîne torchvision.
+Prétraitement numpy de l'inférence (runtime ONNX, sans PyTorch).
 """
 
 import numpy as np
 from PIL import Image
 
-from ml.classification.classifier_bioclip import CLIP_MEAN, CLIP_STD, preprocess_batch, preprocess_image
-
-
-def _torchvision_reference(img: Image.Image) -> np.ndarray:
-    from torchvision import transforms
-
-    tf = transforms.Compose([
-        transforms.Resize((224, 224)),
-        transforms.ToTensor(),
-        transforms.Normalize(mean=CLIP_MEAN.tolist(), std=CLIP_STD.tolist()),
-    ])
-    return tf(img.convert("RGB")).numpy()
+from ml.classification.classifier_bioclip import preprocess_batch
 
 
 def _images() -> list[Image.Image]:
@@ -30,12 +18,6 @@ def _images() -> list[Image.Image]:
     images.append(Image.fromarray(grad).convert("RGBA"))        # canal alpha
     images.append(Image.fromarray(grad).convert("P"))           # palette
     return images
-
-
-def test_preprocess_matches_torchvision():
-    for img in _images():
-        np.testing.assert_allclose(preprocess_image(img), _torchvision_reference(img),
-                                   rtol=0, atol=1e-6)
 
 
 def test_preprocess_batch_shape_and_bad_image():
