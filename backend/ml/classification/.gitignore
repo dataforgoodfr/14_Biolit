@@ -1,0 +1,4 @@
+# Artefacts produits par training/ (publiés sur Hugging Face, jamais commités)
+results/
+# Images, features et snapshots locaux
+data/
