@@ -6,33 +6,17 @@ import polars as pl
 from datetime import datetime
 from pathlib import Path
 import yaml
-import torch
 import requests
 import tempfile
+import onnxruntime as ort
 from PIL import Image
-from ultralytics import YOLO
+from .detector import ImageResult, detect_images, load_session
 from .model_loader import load_model_weights
 from .utils.logger import setup_logger
 from biolit.s3 import create_s3_client, s3_bucket_name, upload_image_s3
 
-import ultralytics.nn.modules as modules
-import sys
-
 import structlog
 LOGGER = structlog.get_logger()
-
-# Hardfix module
-sys.modules["ultralytics.nn.modules.conv"] = modules
-sys.modules["ultralytics.nn.modules.block"] = modules
-sys.modules["ultralytics.nn.modules.head"] = modules
-sys.modules["ultralytics.nn.modules.transformer"] = modules
-
-torch.use_deterministic_algorithms(False)
-_orig = torch.load
-def _patched_torch_load(*a, **kw):
-    kw.setdefault('weights_only', False)
-    return _orig(*a, **kw)
-torch.load = _patched_torch_load
 
 _LOGGER_NAME = "biolit.crop_inference"
 
@@ -46,28 +30,15 @@ def load_config(config_path: str = "config.yaml") -> dict:
         return yaml.safe_load(f)
 
 
-def load_model(cfg: dict) -> YOLO:
-    return YOLO(load_model_weights(cfg))
+def load_model(cfg: dict) -> ort.InferenceSession:
+    return load_session(load_model_weights(cfg))
 
 
-def run_inference(model: YOLO, input_path: str, cfg: dict, run_name: str) -> list:
-    infer = cfg["inference"]
-    results = model.predict(
-        source=input_path,
-        conf=infer["conf"],
-        iou=infer["iou"],
-        imgsz=infer["imgsz"],
-        device=infer["device"],
-        save=False,
-        max_det=1,
-        save_crop=False,
-        project=infer["save_dir"],
-        name=run_name,
-    )
-    return results
+def run_inference(model: ort.InferenceSession, input_path: str, cfg: dict) -> list[ImageResult]:
+    return detect_images(model, input_path, conf=cfg["inference"]["conf"])
 
 
-def build_manifest(results: list, run_name: str, output_dir: str) -> list:
+def build_manifest(results: list[ImageResult], run_name: str, output_dir: str) -> list:
     logger = logging.getLogger(_LOGGER_NAME)
     run_path = Path(output_dir) / run_name / "crops"
     run_path.mkdir(parents=True, exist_ok=True)
@@ -75,16 +46,13 @@ def build_manifest(results: list, run_name: str, output_dir: str) -> list:
     manifest = []
 
     for r in results:
-        if len(r.boxes) == 0:
+        if r.detection is None:
             continue
 
-        best_idx = r.boxes.conf.argmax()
-        box = r.boxes[best_idx]
-
-        x1, y1, x2, y2 = box.xyxy[0].tolist()
-        cls_id = int(box.cls)
-        cls_name = r.names[cls_id]
-        conf = float(box.conf)
+        x1, y1, x2, y2 = r.detection.bbox_xyxy
+        cls_id = r.detection.class_id
+        cls_name = r.detection.class_name
+        conf = r.detection.confidence
         source_name = Path(r.path).stem
 
         img = Image.open(r.path)
@@ -118,7 +86,7 @@ def build_manifest(results: list, run_name: str, output_dir: str) -> list:
 
     return manifest
 
-def build_manifest_s3(results: list, run_name: str, client, bucket: str) -> tuple[pl.DataFrame, pl.DataFrame, dict]:
+def build_manifest_s3(results: list[ImageResult], run_name: str, client, bucket: str) -> tuple[pl.DataFrame, pl.DataFrame, dict]:
     rows = []
     rows_no_crops = []
     crops_images = {}
@@ -130,7 +98,7 @@ def build_manifest_s3(results: list, run_name: str, client, bucket: str) -> tupl
         # -------------------------
         # CASE 1 : NO CROPS
         # -------------------------
-        if len(r.boxes) == 0:
+        if r.detection is None:
             object_name = f"{run_name}/no_crops/{source_stem}.jpg"
             upload_image_s3(
                 client=client,
@@ -149,13 +117,9 @@ def build_manifest_s3(results: list, run_name: str, client, bucket: str) -> tupl
         # CASE 2 : CROPS
         # -------------------------
         else:
-            best_idx = r.boxes.conf.argmax()
-            box = r.boxes[best_idx]
-
-            x1, y1, x2, y2 = box.xyxy[0].tolist()
-            cls_id = int(box.cls)
-            cls_name = r.names[cls_id]
-            conf = float(box.conf)
+            x1, y1, x2, y2 = r.detection.bbox_xyxy
+            cls_name = r.detection.class_name
+            conf = r.detection.confidence
 
             crop = img.crop((x1, y1, x2, y2)).convert("RGB")
             id_crops = f"{source_stem}_{cls_name}"
@@ -181,14 +145,12 @@ def build_manifest_s3(results: list, run_name: str, client, bucket: str) -> tupl
 
     return pl.DataFrame(rows), pl.DataFrame(rows_no_crops), crops_images
 
-def print_results(model: YOLO, results: list) -> None:
+def print_results(results: list[ImageResult]) -> None:
     logger = logging.getLogger(_LOGGER_NAME)
     for r in results:
-        logger.info("[%s] — %d détection(s)", r.path, len(r.boxes))
-        for box in r.boxes:
-            label = model.names[int(box.cls)]
-            conf = float(box.conf)
-            logger.info("  → %s : %.2f", label, conf)
+        logger.info("[%s] — %d détection(s)", r.path, r.detection is not None)
+        if r.detection is not None:
+            logger.info("  → %s : %.2f", r.detection.class_name, r.detection.confidence)
 
 
 def run_predict(source: str, config_path: str, run_name: str, log_level: str = "INFO"):
@@ -204,17 +166,9 @@ def run_predict(source: str, config_path: str, run_name: str, log_level: str = "
     log_dir = Path(cfg["inference"]["save_dir"]) / run_name
     logger = setup_logger(_LOGGER_NAME, log_dir=str(log_dir), level=log_level)
 
-    # Redirect ultralytics internal logs to our file handler so warnings land
-    # in the run log alongside inference output.
-    ul_logger = logging.getLogger("ultralytics")
-    ul_logger.handlers = list(logger.handlers)
-    ul_logger.setLevel(logging.WARNING)
-    ul_logger.propagate = False
-
-    infer = cfg["inference"]
     logger.info(
-        "Démarrage run=%s | source=%s | device=%s | conf=%.2f | iou=%.2f | imgsz=%d | max_det=1",
-        run_name, source, infer["device"], infer["conf"], infer["iou"], infer["imgsz"],
+        "Démarrage run=%s | source=%s | conf=%.2f | max_det=1",
+        run_name, source, cfg["inference"]["conf"],
     )
 
     t0 = time.perf_counter()
@@ -226,12 +180,12 @@ def run_predict(source: str, config_path: str, run_name: str, log_level: str = "
         raise
 
     try:
-        results = run_inference(model, source, cfg, run_name)
+        results = run_inference(model, source, cfg)
     except Exception:
         logger.error("Erreur pendant l'inférence sur '%s'", source, exc_info=True)
         raise
 
-    print_results(model, results)
+    print_results(results)
 
     try:
 
@@ -286,8 +240,8 @@ def flow_ml_crops(df: pl.DataFrame, config: Path, run_name: str) -> tuple[pl.Dat
     return df_crops, df_no_crops, crops_images
 
 def main():
-    parser = argparse.ArgumentParser(description="Inférence YOLOv8 Biolit — crop + manifeste")
-    parser.add_argument("--source", required=True, help="image, dossier ou vidéo")
+    parser = argparse.ArgumentParser(description="Inférence ONNX Biolit — crop + manifeste")
+    parser.add_argument("--source", required=True, help="image ou dossier d'images")
     parser.add_argument("--config", default="config.yaml")
     parser.add_argument(
         "--log-level",
@@ -311,17 +265,9 @@ def main():
     log_dir = Path(cfg["inference"]["save_dir"]) / run_name
     logger = setup_logger(_LOGGER_NAME, log_dir=str(log_dir), level=args.log_level)
 
-    # Redirect ultralytics internal logs to our file handler so warnings land
-    # in the run log alongside inference output.
-    ul_logger = logging.getLogger("ultralytics")
-    ul_logger.handlers = list(logger.handlers)
-    ul_logger.setLevel(logging.WARNING)
-    ul_logger.propagate = False
-
-    infer = cfg["inference"]
     logger.info(
-        "Démarrage run=%s | source=%s | device=%s | conf=%.2f | iou=%.2f | imgsz=%d | max_det=1",
-        run_name, args.source, infer["device"], infer["conf"], infer["iou"], infer["imgsz"],
+        "Démarrage run=%s | source=%s | conf=%.2f | max_det=1",
+        run_name, args.source, cfg["inference"]["conf"],
     )
 
     t0 = time.perf_counter()
@@ -333,12 +279,12 @@ def main():
         raise
 
     try:
-        results = run_inference(model, args.source, cfg, run_name)
+        results = run_inference(model, args.source, cfg)
     except Exception:
         logger.error("Erreur pendant l'inférence sur '%s'", args.source, exc_info=True)
         raise
 
-    print_results(model, results)
+    print_results(results)
 
     try:
         manifest = build_manifest(results, run_name, cfg["inference"]["save_dir"])

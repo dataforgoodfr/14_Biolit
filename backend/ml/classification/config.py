@@ -1,66 +1,35 @@
 """
-config.py — Configuration centrale de la pipeline
+config.py — Configuration centrale de la classification
 """
 
-import torch
+import os
 from pathlib import Path
-
-from biolit.settings import s3_bucket_name, s3_endpoint_url
 
 # ── Chemins ───────────────────────────────────────────────────────────────────
 ROOT_DIR      = Path(__file__).parent
 DATA_DIR      = ROOT_DIR / "data/dataset_biolit"
 IMAGES_DIR    = DATA_DIR / "images"
-LABELS_DIR    = DATA_DIR / "labels"
-TAXONOMY_FILE = DATA_DIR / "taxref.parquet"
 RESULTS_DIR   = ROOT_DIR / "results"
-CROPS_DIR     = RESULTS_DIR / "crops"
-REJECTED_DIR  = RESULTS_DIR / "rejected"
-REPORTS_DIR   = RESULTS_DIR / "reports"
-
-
-# ── Device ────────────────────────────────────────────────────────────────────
-DEVICE = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
 # ── Niveaux taxonomiques ───────────────────────────────────────────────────────
-TAXONOMY_LEVELS = ["regne", "phylum", "classe", "ordre", "famille", "sous_famille", "species_name"]
+SUPERVISED_LEVELS = ["regne", "phylum", "classe", "ordre", "famille"]          # large → fin
+DECISION_LEVELS   = ["species_name", "famille", "ordre", "classe", "phylum", "regne"]  # fin → large
 
-# ── Proto-CLIP classifier (classifier.py) ─────────────────────────────────────
-BIOCLIP_MODEL_ID     = "hf-hub:imageomics/bioclip-2"
-CONFIDENCE_THRESHOLD = 0.35    # seuil arrêt hiérarchique
-PROTO_ALPHA          = 0.6    # fusion visuel/textuel Proto-CLIP
-PROTO_WHITENING_DIM  = 256    # 512d → 256d après PCA whitening
-PROTO_BATCH_SIZE     = 32     # batch extraction features BioCLIP2
+# ── BioCLIP-2 (encodeur visuel, gelé) ─────────────────────────────────────────
+BIOCLIP_MODEL_ID = "hf-hub:imageomics/bioclip-2"
+IMG_SIZE         = 224
+FEATURE_DIM      = 768    # dimension de sortie de BioCLIP-2 (ViT-L/14)
+BATCH_SIZE       = 32     # batch d'extraction
 
-# ── MLP par niveau taxonomique ────────────────────────────────────────────────
-MLP_EPOCHS     = 40     # epochs par MLP (règne, phylum, classe, ordre, famille)
-MLP_DROPOUT    = 0.3    # régularisation MLP
+# ── ONNX Runtime ───────────────────────────────────────────────────────────────
+ONNX_THREADS = int(os.getenv("CLASSIF_ONNX_THREADS", "0"))   # 0 = auto
 
-# ── margin score ─────────────────────────────────────────────────────
-# Rejette une prédiction si score_top1 - score_top2 < MARGIN_MIN
-# même si score_top1 ≥ CONFIDENCE_THRESHOLD
-# Évite les faux positifs à haute confiance (ex: 91% mais faux)
+# ── Fichiers du modèle (publiés sur Hugging Face) ─────
+ENCODER_ONNX_FILE = RESULTS_DIR / "bioclip2_visual.onnx"     # image → features 768d
+HEADS_ONNX_FILE   = RESULTS_DIR / "classifier_heads.onnx"    # features → probabilités par niveau
+META_FILE         = RESULTS_DIR / "classifier_meta.json"     # classes, taxonomie, seuils
 
-MARGIN_MIN     = 0.05
-
-# ── S3 Configuration ───────────────────────────────────────────────────────────
-S3_BUCKET_NAME   = s3_bucket_name()
-S3_ENDPOINT_URL  = s3_endpoint_url() or "https://s3.fr-par.scw.cloud"
-S3_DEFAULT_RUN   = "latest"
-
-# ── Niveaux supervisés (pour MLP) ─────────────────────────────────────────────
-SUPERVISED_LEVELS = ["regne", "phylum", "classe", "ordre", "famille"]
-
-# ── Fichiers de sortie ─────────────────────────────────────────────────────────
-PROTO_CACHE_FILE  = RESULTS_DIR / "bioclip_features.npz"
-PROTO_MODEL_FILE  = RESULTS_DIR / "proto_model.npz"
-PROTO_TAX_FILE    = RESULTS_DIR / "tax_lookup.pkl"
-MLP_MODEL_FILE    = RESULTS_DIR / "mlp_model.pt"
-
-# ── Hugging Face Hub ────────────────────────────────────────────────────────────
-HF_REPO_ID = "salima2509001/bioclip-classif"
-
-# ── Rapport HTML ───────────────────────────────────────────────────────────────
-CLASSIFY_IMAGES_DIR  = IMAGES_DIR / "identifiable"
-PROTO_REPORT_FILE    = RESULTS_DIR / "report_proto_clip.html"
-PROTO_REPORT_GALLERY = 60
+# "huggingface" (défaut, production) ou "local" (fichiers de RESULTS_DIR)
+MODEL_SOURCE = os.getenv("CLASSIF_MODEL_SOURCE", "huggingface").lower()
+HF_REPO_ID   = "DataForGood/biolit-species-identification"
+HF_SUBFOLDER = "classification"     # sous-dossier du dépôt contenant les fichiers du modèle

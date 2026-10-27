@@ -2,7 +2,7 @@ from pathlib import Path
 from huggingface_hub import hf_hub_download
 
 def load_model_weights(cfg: dict) -> str:
-    """Retourne le chemin local vers best.pt, quelle que soit la source."""
+    """Retourne le chemin local vers le modèle ONNX, quelle que soit la source."""
     source = cfg["model"]["source"]
     model_cfg = cfg["model"]
 

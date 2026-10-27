@@ -2,7 +2,7 @@
 
 ## Description
 
-Module d'inférence YOLOv8 qui détecte et croppe l'espèce principale (animal/plant) sur des photos
+Module d'inférence ONNX (YOLOv8 exporté) qui détecte et croppe l'espèce principale (animal/plant) sur des photos
 littorales. Pour chaque image, une seule détection est conservée (la plus confiante). Les crops sont
 sauvegardés sur disque et un manifeste JSON est produit pour l'étape suivante du pipeline
 (classification taxonomique).
@@ -12,8 +12,9 @@ sauvegardés sur disque et un manifeste JSON est produit pour l'étape suivante 
 ```
 crop_inference/
 ├── predict.py        # Point d'entrée CLI — orchestre config, modèle, inférence, manifeste
+├── detector.py       # Détection ONNX : letterbox, meilleure boîte, remise à l'échelle
 ├── model_loader.py   # Téléchargement/cache du modèle depuis HuggingFace
-├── config.yaml       # Paramètres d'inférence (conf, iou, device…)
+├── config.yaml       # Paramètres d'inférence (conf, save_dir)
 └── utils/
     └── logger.py     # Logging console coloré + fichier rotatif par run
 ```
@@ -34,19 +35,17 @@ uv run python -m ml.crop_inference.predict \
 # config.yaml
 model:
   source: "huggingface"                          # huggingface (dataforgood) | local
-  repo_id: "DataForGood/yolov8_biolit_crop"
-  filename: "runs/biolit_v2_yolo_finetuned/best.pt"
+  repo_id: "DataForGood/biolit-species-identification"
+  filename: "detection/model.onnx"
 
 inference:
-  conf: 0.4       # Seuil de confiance minimum pour garder une détection
-  iou: 0.45       # Seuil IoU pour la suppression non-maximale (NMS)
-  imgsz: 640      # Taille d'entrée du modèle (pixels)
-  device: "cpu"   # cpu | cuda | mps
-  save: true      # Sauvegarde des crops (toujours true en pratique)
+  conf: 0.4             # Seuil de confiance minimum pour garder une détection
   save_dir: "outputs/"  # Répertoire racine des sorties
 ```
 
-`max_det` est fixé à `1` dans le code — une seule détection par image, la plus confiante.
+Une seule détection est gardée par image (la plus confiante) : pas besoin de NMS. La taille
+d'entrée (640) et les classes sont lues dans le modèle ONNX. L'inférence tourne sur CPU avec
+`onnxruntime`, sans PyTorch ni Ultralytics.
 
 ## Outputs
 
@@ -77,14 +76,9 @@ outputs/run_YYYYMMDD_HHMMSS/
 
 ## Modèle
 
-- **Source :** [DataForGood/yolov8_biolit_crop](https://huggingface.co/DataForGood/yolov8_biolit_crop) — téléchargé automatiquement via `hf_hub_download` et mis en cache localement
-- **Architecture :** YOLOv8 finetuné sur images littorales Biolit
+- **Source :** [DataForGood/biolit-species-identification](https://huggingface.co/DataForGood/biolit-species-identification) (`detection/model.onnx`) — téléchargé automatiquement via `hf_hub_download` et mis en cache localement
+- **Architecture :** YOLOv8s finetuné sur images littorales Biolit, exporté en ONNX (opset 18)
 - **Classes :** `{0: plant, 1: animal}`
-
-**Note — hardfix `ultralytics.nn.modules` :** `predict.py` réexpose manuellement les sous-modules
-`conv`, `block`, `head`, `transformer` pour contourner un mismatch entre la version du modèle
-sérialisé et la version installée d'ultralytics. Si ultralytics est mis à jour et que le chargement
-échoue, vérifier en priorité ce bloc.
 
 ## Pipeline
 
